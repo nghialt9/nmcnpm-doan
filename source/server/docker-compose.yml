@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8007:8007"
+    volumes:
+      - .:/app
+networks:
+  external_network:
+    external: true

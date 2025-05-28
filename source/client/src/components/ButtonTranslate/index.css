@@ -1,0 +1,60 @@
+.pointer {
+  margin: 100px;
+  display: block;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  background: #f49d16;
+  cursor: pointer;
+  box-shadow: 0 0 0 rgb(244, 157, 22);
+  animation: pulse 2s infinite;
+}
+.pointer span {
+  color: #fff;
+  text-align: center;
+  display: block;
+  width: 31px;
+  padding: 5px 0px;
+}
+.text {
+  -webkit-transform: scaleY(0);
+  -ms-transform: scaleY(0);
+  transform: scaleY(0);
+  -webkit-transform-origin: bottom;
+  -ms-transform-origin: bottom;
+  transform-origin: bottom;
+  transition: -webkit-transform 150ms ease 150ms;
+  transition: transform 150ms ease 150ms;
+  transition: transform 150ms ease 150ms, -webkit-transform 150ms ease 150ms;
+}
+.note.open .text {
+  -webkit-transform: scaleY(1);
+  -ms-transform: scaleY(1);
+  transform: scaleY(1);
+}
+
+@-webkit-keyframes pulse {
+  0% {
+    -webkit-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0.4);
+  }
+  70% {
+    -webkit-box-shadow: 0 0 0 10px rgba(244, 157, 22, 0);
+  }
+  100% {
+    -webkit-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0);
+  }
+}
+@keyframes pulse {
+  0% {
+    -moz-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0.4);
+    box-shadow: 0 0 0 0 rgba(244, 157, 22, 0.4);
+  }
+  70% {
+    -moz-box-shadow: 0 0 0 10px rgba(244, 157, 22, 0);
+    box-shadow: 0 0 0 10px rgba(244, 157, 22, 0);
+  }
+  100% {
+    -moz-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0);
+    box-shadow: 0 0 0 0 rgba(244, 157, 22, 0);
+  }
+}

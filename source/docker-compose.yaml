@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  mysql:
+    build: ./mysql # Path to your mysql folder with Dockerfile
+    ports:
+      - "3306:3306" # Map port 3306 of the container to port 3306 of your host
+    environment:
+      MYSQL_ROOT_PASSWORD: "password" # Set a strong password for MySQL root user
+      MYSQL_DATABASE: "kt_tkpm" # Set the desired database name
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p$MYSQL_ROOT_PASSWORD",
+        ]
+      timeout: 10s
+      retries: 10
+    # networks:
+    #   - doantkpm
+  server:
+    build: ./server # Path to your server folder with Dockerfile
+    ports:
+      - "8007:8007" # Map port 8007 of the container to port 8007 of your host
+    depends_on:
+      mysql: # Ensure MySQL starts before the server container
+        condition: service_healthy
+    # networks:
+    #   - doantkpm
+    environment:
+      MYSQL_HOST: "mysql" # Set a strong password for MySQL root user
+
+  client:
+    build: ./client # Path to your server folder with Dockerfile
+    ports:
+      - "3000:3000" # Map port 8007 of the container to port 8007 of your host
+    # networks:
+    #   - doantkpm
+networks:
+  doantkpm:
+    external: true
