@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { HiSpeakerWave } from "react-icons/hi2";
+import { FaVolumeUp } from "react-icons/fa";
 import "./index.css";
+import React from "react";
 
-const ButtonSpeaker = ({ text }: any) => {
+const ButtonSpeaker = ({ text }: { text: string }) => {
   const [isPaused, setIsPaused] = useState(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [utterance, setUtterance] = useState<any>(null);
@@ -165,7 +166,9 @@ const ButtonSpeaker = ({ text }: any) => {
         className={`speaker ${!isPlaying ? "" : "pointer"}`}
         onClick={_handlePlay}
       >
-        <HiSpeakerWave size={30} color={"white"} />
+        <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FaVolumeUp color="white" />
+        </div>
       </button>
     </div>
   );

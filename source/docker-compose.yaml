@@ -16,7 +16,7 @@ services:
           "localhost",
           "-u",
           "root",
-          "password",
+          "-ppassword"
         ]
       timeout: 10s
       retries: 10
@@ -33,6 +33,7 @@ services:
     #   - doantkpm
     environment:
       MYSQL_HOST: "mysql" # Set a strong password for MySQL root user
+      MYSQL_ROOT_PASSWORD: "password"
 
   client:
     build: ./client # Path to your server folder with Dockerfile
