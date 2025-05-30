@@ -4,8 +4,8 @@ import { useAuth } from "../../providers/AuthContext";
 import { Navigate } from "react-router-dom";
 
 const LoginSignupForm: React.FC = () => {
-  const [loginUsername, setLoginUsername] = useState("user");
-  const [loginPassword, setLoginPassword] = useState("password");
+  const [registerUsername, setRegisterUsername] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
   const { register, state } = useAuth();
 
   useEffect(() => {
@@ -14,21 +14,21 @@ const LoginSignupForm: React.FC = () => {
     }
   }, [state]);
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(loginUsername, loginPassword);
+      await register(registerUsername, registerPassword);
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Registration failed:", error);
     }
   };
 
   const _handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginUsername(e.target.value);
+    setRegisterUsername(e.target.value);
   };
 
   const _handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginPassword(e.target.value);
+    setRegisterPassword(e.target.value);
   };
 
   if (state.isAuthenticated) {
@@ -43,27 +43,27 @@ const LoginSignupForm: React.FC = () => {
       <Row className="flex align-content-center" style={{ maxWidth: 600 }}>
         <Col style={{ minWidth: 480 }}>
           <h2>Register</h2>
-          <Form onSubmit={handleLoginSubmit}>
-            <Form.Group controlId="loginUsername">
+          <Form onSubmit={handleRegisterSubmit}>
+            <Form.Group controlId="registerUsername">
               <Form.Label>Username</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter username"
-                value={loginUsername}
+                value={registerUsername}
                 onChange={_handleUsernameChange}
               />
             </Form.Group>
-            <Form.Group controlId="loginPassword">
+            <Form.Group controlId="registerPassword">
               <Form.Label>Password</Form.Label>
               <Form.Control
                 type="password"
                 placeholder="Password"
-                value={loginPassword}
+                value={registerPassword}
                 onChange={_handleChangePassword}
               />
             </Form.Group>
             <Button variant="primary" type="submit">
-              Login
+              Register
             </Button>
           </Form>
         </Col>

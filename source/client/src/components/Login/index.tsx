@@ -7,19 +7,21 @@ import { RiLockPasswordFill } from "react-icons/ri";
 import "./login.css";
 
 const LoginSignupForm: React.FC = () => {
-  const [loginUsername, setLoginUsername] = useState("user");
-  const [loginPassword, setLoginPassword] = useState("password");
-  const { login, register, state } = useAuth();
+  const [registerUsername, setRegisterUsername] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const { login, register, state, clearError } = useAuth();
   const inputUserNameRef = useRef<HTMLInputElement | null>(null);
   const inputPasswordRef = useRef<HTMLInputElement | null>(null);
 
   const [action, setAction] = useState("");
   const registerLink = () => {
     setAction(" active");
+    clearError();
   };
 
   const loginLink = () => {
     setAction("");
+    clearError();
   };
 
   useEffect(() => {
@@ -30,20 +32,16 @@ const LoginSignupForm: React.FC = () => {
 
   const _handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await login(loginUsername, loginPassword);
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
+    clearError();
+    const username = inputUserNameRef.current?.value || "";
+    const password = inputPasswordRef.current?.value || "";
+    await login(username, password);
   };
 
   const _handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await register(loginUsername, loginPassword);
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
+    clearError();
+    await register(registerUsername, registerPassword);
   };
 
   if (state.isAuthenticated) {
@@ -62,21 +60,21 @@ const LoginSignupForm: React.FC = () => {
               <FaUser className="icon" />
               <input
                 type="text"
-                defaultValue={"user"}
                 ref={inputUserNameRef}
                 placeholder="Username"
                 required
+                onChange={clearError}
               />
             </div>
 
             <div className="input-box">
               <RiLockPasswordFill className="icon" />
               <input
-                defaultValue={"password"}
                 type="password"
                 ref={inputPasswordRef}
                 placeholder="Password"
                 required
+                onChange={clearError}
               />
             </div>
 
@@ -85,17 +83,19 @@ const LoginSignupForm: React.FC = () => {
                 <input type="checkbox" />
                 Remember me
               </label>
-              <a href="#">Forgot Password?</a>
+              <button className="forgot-password-button">Forgot Password?</button>
             </div>
 
             <button type="submit">Login</button>
 
+            {state.error && <div className="error-message" style={{ display: 'block !important', color: 'red !important', background: 'white !important' }}>{state.error}</div>}
+
             <div className="register-link">
               <p>
                 Don't have an account ?{" "}
-                <a href="#" onClick={registerLink}>
+                <button onClick={registerLink} className="link-button">
                   Register Now
-                </a>
+                </button>
               </p>
             </div>
           </form>
@@ -108,12 +108,30 @@ const LoginSignupForm: React.FC = () => {
 
             <div className="input-box">
               <FaUser className="icon" />
-              <input type="text" placeholder="Username" required />
+              <input
+                type="text"
+                placeholder="Username"
+                required
+                value={registerUsername}
+                onChange={(e) => {
+                  setRegisterUsername(e.target.value);
+                  clearError();
+                }}
+              />
             </div>
 
             <div className="input-box">
               <RiLockPasswordFill className="icon" />
-              <input type="password" placeholder="Password" required />
+              <input
+                type="password"
+                placeholder="Password"
+                required
+                value={registerPassword}
+                onChange={(e) => {
+                  setRegisterPassword(e.target.value);
+                  clearError();
+                }}
+              />
             </div>
 
             <div className="remember-forgot">
@@ -127,13 +145,15 @@ const LoginSignupForm: React.FC = () => {
             <div className="register-link">
               <p>
                 Have an account ?{" "}
-                <a href="#" onClick={loginLink}>
+                <button onClick={loginLink} className="link-button">
                   Login
-                </a>
+                </button>
               </p>
             </div>
           </form>
         </div>
+
+        {state.error && action === " active" && <div className="error-message">{state.error}</div>}
       </div>
     </div>
   );

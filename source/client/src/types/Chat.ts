@@ -1,6 +1,8 @@
 export interface Message {
   sender: string;
   content: string;
+  role?: string;
+  uuid?: string;
 }
 
 export interface ChatProps {}
@@ -17,4 +19,18 @@ export interface SubmitConversation {
 
 export interface GetConversationHistory {
   history_uuid: string;
+}
+
+export interface ChatResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  translatedText?: string;
+  data?: any;
+}
+
+export interface ConversationResponse {
+  success: boolean;
+  conversations?: Message[];
+  error?: string;
 }

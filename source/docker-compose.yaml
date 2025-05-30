@@ -5,7 +5,7 @@ services:
       - "3306:3306" # Map port 3306 of the container to port 3306 of your host
     environment:
       MYSQL_ROOT_PASSWORD: "password" # Set a strong password for MySQL root user
-      MYSQL_DATABASE: "kt_tkpm" # Set the desired database name
+      MYSQL_DATABASE: "db_nmcnpm" # Set the desired database name
     healthcheck:
       test:
         [
@@ -39,6 +39,8 @@ services:
     build: ./client # Path to your server folder with Dockerfile
     ports:
       - "3000:3000" # Map port 8007 of the container to port 8007 of your host
+    environment:
+      NODE_OPTIONS: "--openssl-legacy-provider"
     # networks:
     #   - doantkpm
 networks:

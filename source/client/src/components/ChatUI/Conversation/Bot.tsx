@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 
 import "../chatui.css";
 
@@ -7,6 +7,7 @@ import { translate } from "../../../services/chat";
 
 import ButtonTranslate from "../../ButtonTranslate";
 import ButtonSpeaker from "../../ButtonSpeaker";
+import { FaVolumeUp, FaTimes } from "react-icons/fa";
 
 function useOutsideAlerter(ref: any, handleClickOutside: any) {
   useEffect(() => {
@@ -24,7 +25,7 @@ function useOutsideAlerter(ref: any, handleClickOutside: any) {
       // Unbind the event listener on clean up
       document.removeEventListener("mousedown", _handleClickOutside);
     };
-  }, [ref]);
+  }, [ref, handleClickOutside]);
 }
 
 const BotConversation = ({ content }: any) => {
@@ -33,12 +34,20 @@ const BotConversation = ({ content }: any) => {
 
   const wrapperRef = useRef<any>(null);
 
-  const handleMouseUp = async () => {
+  const handleMouseUp = async (event: React.MouseEvent<HTMLDivElement>) => {
     const selectedText = window.getSelection()?.toString().trim();
     if (selectedText) {
-      setSelectedText(selectedText);
-      const { translatedText } = await translate(selectedText);
-      setTranslation(translatedText);
+      try {
+        setSelectedText(selectedText);
+        const response = await translate(selectedText);
+        if (response.success && response.translatedText) {
+          setTranslation(response.translatedText);
+        } else {
+          console.error("Translation failed:", response.error);
+        }
+      } catch (error) {
+        console.error("Error translating:", error);
+      }
     }
   };
 
@@ -49,34 +58,44 @@ const BotConversation = ({ content }: any) => {
     }
   };
 
-  const _handleClickOutside = () => {
+  const _handleClickOutside = useCallback(() => {
     setSelectedText("");
-  };
+  }, [setSelectedText]);
 
   useOutsideAlerter(wrapperRef, _handleClickOutside);
 
   return (
     <div className={`chat bott`} onMouseUp={handleMouseUp}>
-      <div style={{ minWidth: "32px" }}>
+      <div style={{ display: 'flex', alignItems: 'center', minWidth: "65px" }}>
         <RiRobot2Fill size={30} />
+        <span className="bot-label" style={{ marginLeft: '5px' }}>Bot</span>
       </div>
       <p className="txt">{content}</p>
       {selectedText && (
         <div
           ref={wrapperRef}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            border: "1px solid black",
-            padding: "10px",
-            backgroundColor: "#7ab2b2",
-            borderRadius: "8px",
-          }}
+          className="translation-popup"
         >
-          <p>Selected Text: {selectedText}</p>
-          <p>Translation: {translation}</p>
-          <button onClick={handleSpeak}>Speak</button>
+          <div className="translation-header">
+            <h4>Translation</h4>
+            <button className="close-btn" onClick={() => setSelectedText("")}>
+              <FaTimes size={16} />
+            </button>
+          </div>
+          <div className="translation-content">
+            <div className="translation-item">
+              <span className="label">Original:</span>
+              <p className="text">{selectedText}</p>
+            </div>
+            <div className="translation-item">
+              <span className="label">Translated:</span>
+              <p className="text">{translation}</p>
+            </div>
+          </div>
+          <button className="speak-btn" onClick={handleSpeak}>
+            <FaVolumeUp size={16} />
+            <span>Speak</span>
+          </button>
         </div>
       )}
       <div className="botFunction">

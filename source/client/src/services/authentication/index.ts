@@ -1,10 +1,21 @@
 import { apiCaller } from "../../apis/apiCaller";
+
+interface AuthResponse {
+  success: boolean;
+  user?: {
+    uuid: string;
+    username: string;
+    created_at: string;
+  };
+  error?: string;
+}
+
 const BASE_URL = process.env.REACT_APP_SERVER_BASE_URL;
 
 export const login = async (
   username: string,
   password: string
-): Promise<void> => {
+): Promise<AuthResponse> => {
   // return new Promise((resolve, reject) => {
   //   setTimeout(() => {
   //     resolve();
@@ -17,7 +28,7 @@ export const login = async (
 export const register = async (
   username: string,
   password: string
-): Promise<boolean> => {
+): Promise<AuthResponse> => {
   return apiCaller(`${BASE_URL}/user/register`, "POST", { username, password });
   // return true;
 };

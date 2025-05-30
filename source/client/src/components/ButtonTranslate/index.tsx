@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { SiGoogletranslate } from "react-icons/si";
 import { Button, Modal } from "react-bootstrap";
 import { translate } from "../../services/chat";
@@ -11,12 +11,16 @@ const ButtonTranslate = ({ text }: any) => {
   const handleClose = () => setShow(false);
   const [translateText, setTranslateText] = useState<string>("");
 
-  const _handleTranslate = async () => {
+  const handleTranslate = async () => {
     try {
       setLoading(true);
       const data = await translate(text);
-      setShow(true);
-      setTranslateText(data.translatedText || "");
+      if (data.success && data.translatedText) {
+        setShow(true);
+        setTranslateText(data.translatedText);
+      } else {
+        console.error("Translation failed:", data.error);
+      }
     } catch (error) {
       console.error("Error translate:", error);
     } finally {
@@ -26,13 +30,13 @@ const ButtonTranslate = ({ text }: any) => {
 
   return (
     <>
-      <button className="translate" onClick={_handleTranslate}>
+      <button className="translate" onClick={handleTranslate}>
         {loading ? (
           <Spinner size={"sm"} animation="border" role="status">
             <span className="visually-hidden">Loading...</span>
           </Spinner>
         ) : (
-          <SiGoogletranslate size={30} color={"white"} />
+          <SiGoogletranslate size={30} color={"midnightblue"} />
         )}
       </button>
 

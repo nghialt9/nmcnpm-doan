@@ -1,7 +1,8 @@
+import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Route, Routes } from "react-router-dom";
 
-import { AuthProvider, useAuth } from "../providers/AuthContext";
+import { AuthProvider } from "../providers/AuthContext";
 
 import Login from "../components/Login";
 import ChatGPTInterface from "../components/ChatUI";

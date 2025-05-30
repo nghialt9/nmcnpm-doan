@@ -1,11 +1,16 @@
 import express from "express";
-import mysql from "mysql2";
+import mysql, { RowDataPacket } from "mysql2/promise";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "dotenv";
 import OpenAI from "openai";
+import cors from "cors";
 
 const router = express.Router();
 config();
+
+// Enable CORS
+router.use(cors());
+router.use(express.json());
 
 const dbConfig = {
   host: process.env.MYSQL_HOST || process.env.DB_HOST,
@@ -15,52 +20,71 @@ const dbConfig = {
 };
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // "", // process.env.OPENAI_API_KEY, // This is the default and can be omitted
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-const connection = mysql.createConnection(dbConfig);
+// Create initial connection without database
+const initialConnection = mysql.createPool(dbConfig);
 
-//init tables
-const sqlInitTables = [
-  `CREATE DATABASE IF NOT EXISTS db_tkpm;`,
-  `USE db_tkpm;`,
-  `CREATE TABLE  IF NOT EXISTS users (
-  uuid char(36),
-  username varchar(30) NOT NULL,
-  password varchar(50) NOT NULL,
-  created_at timestamp NOT NULL,
-  updated_at timestamp,
-  deleted_at timestamp,
-  PRIMARY KEY(uuid)
-  );`,
-  `CREATE TABLE  IF NOT EXISTS historys (
-  uuid char(36),
-  created_at timestamp NOT NULL,
-  updated_at timestamp,
-  deleted_at timestamp,
-  user_uuid char(36),
-  PRIMARY KEY(uuid),
-  CONSTRAINT fk_users_historys_from_user FOREIGN KEY (user_uuid) REFERENCES users(uuid)
-  );`,
-  `CREATE TABLE  IF NOT EXISTS logs (
-  uuid char(36),
-  number_sentence int,
-  sentences text,
-  history_uuid char(36),
-  created_at timestamp NOT NULL,
-  updated_at timestamp,
-  deleted_at timestamp,
-  PRIMARY KEY(uuid),
-  item_role char(36),
-  CONSTRAINT fk_historys_logs_from_history FOREIGN KEY (history_uuid) REFERENCES historys(uuid)
-  );`,
-];
+// Promise to track database initialization status
+let dbInitializedPromise: Promise<void>;
 
-//init database
-sqlInitTables.forEach((sql) => {
-  connection.query(sql, (err, results) => {
-    if (err) throw err;
-  });
+// Initialize database and tables
+dbInitializedPromise = (async () => {
+  try {
+    // Create database if not exists
+    await initialConnection.query(`CREATE DATABASE IF NOT EXISTS db_nmcnpm`);
+    
+    // Switch to the database
+    await initialConnection.query(`USE db_nmcnpm`);
+    
+    // Create tables
+    const sqlInitTables = [
+      `CREATE TABLE IF NOT EXISTS users (
+        uuid char(36),
+        username varchar(30) NOT NULL,
+        password varchar(50) NOT NULL,
+        created_at timestamp NOT NULL,
+        updated_at timestamp,
+        deleted_at timestamp,
+        PRIMARY KEY(uuid)
+      );`,
+      `CREATE TABLE IF NOT EXISTS historys (
+        uuid char(36),
+        created_at timestamp NOT NULL,
+        updated_at timestamp,
+        deleted_at timestamp,
+        user_uuid char(36),
+        PRIMARY KEY(uuid),
+        CONSTRAINT fk_users_historys_from_user FOREIGN KEY (user_uuid) REFERENCES users(uuid)
+      );`,
+      `CREATE TABLE IF NOT EXISTS logs (
+        uuid char(36),
+        number_sentence int,
+        sentences text,
+        history_uuid char(36),
+        created_at timestamp NOT NULL,
+        updated_at timestamp,
+        deleted_at timestamp,
+        PRIMARY KEY(uuid),
+        item_role char(36),
+        CONSTRAINT fk_historys_logs_from_history FOREIGN KEY (history_uuid) REFERENCES historys(uuid)
+      );`,
+    ];
+
+    for (const sql of sqlInitTables) {
+      await initialConnection.query(sql);
+    }
+    console.log('Database and tables initialized successfully');
+  } catch (err: any) {
+    console.error('Error initializing database:', err);
+  }
+})();
+
+// Create connection pool with database
+const connection = mysql.createPool({
+  ...dbConfig,
+  database: 'db_nmcnpm'
 });
 
 interface User {
@@ -72,107 +96,196 @@ interface User {
   deleted_at?: Date;
 }
 
+interface UserRow extends RowDataPacket {
+  uuid: string;
+  username: string;
+  password: string;
+  created_at: Date;
+  updated_at: Date | null;
+  deleted_at: Date | null;
+}
+
 //get user by uuid
-router.get("/user/:uuid", (req, res) => {
-  const uuid = req.params.uuid;
-  connection.query(
-    `SELECT * FROM users WHERE uuid = ?`,
-    [uuid],
-    (err, rows) => {
-      if (err) throw err;
-      res.send(rows);
-    }
-  );
+router.get("/user/:uuid", async (req, res) => {
+  try {
+    const uuid = req.params.uuid;
+    const [rows] = await connection.query(
+      `SELECT * FROM users WHERE uuid = ?`,
+      [uuid]
+    );
+    res.json({
+      success: true,
+      data: rows
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 });
 
 // login
-router.post("/user/login", (req, res) => {
-  let user: User = {
-    uuid: uuidv4(),
-    username: req.body.username,
-    password: req.body.password,
-    created_at: new Date(),
-  };
-  console.log(user);
-  // save user to database
-  connection.query(
-    `SELECT * FROM users where username = ? and password = ?`,
-    [user.username, user.password],
-    (err, rows) => {
-      if (err) throw err;
-      res.send(rows);
+router.post("/user/login", async (req, res) => {
+  await dbInitializedPromise; // Wait for database to be initialized
+  try {
+    console.log('Login attempt:', req.body);
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      console.log('Missing credentials');
+      return res.status(400).json({
+        success: false,
+        error: "Username and password are required"
+      });
     }
-  );
+
+    const [rows] = await connection.query<UserRow[]>(
+      `SELECT * FROM users where username = ? and password = ?`,
+      [username, password]
+    );
+
+    console.log('Query result:', rows);
+
+    if (rows.length > 0) {
+      const user = rows[0];
+      const response = {
+        success: true,
+        user: {
+          uuid: user.uuid,
+          username: user.username,
+          created_at: user.created_at
+        }
+      };
+      console.log('Sending response:', response);
+      return res.json(response);
+    } else {
+      console.log('Invalid credentials');
+      return res.status(401).json({
+        success: false,
+        error: "Invalid username or password"
+      });
+    }
+  } catch (err: any) {
+    console.error('Login error:', err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 });
 
 // register
-router.post("/user/register", (req, res) => {
-  let user: User = {
-    uuid: uuidv4(),
-    username: req.body.username,
-    password: req.body.password,
-    created_at: new Date(),
-  };
+router.post("/user/register", async (req, res) => {
+  await dbInitializedPromise; // Wait for database to be initialized
+  try {
+    console.log('Register attempt:', req.body);
+    const user: User = {
+      uuid: uuidv4(),
+      username: req.body.username,
+      password: req.body.password,
+      created_at: new Date(),
+    };
 
-  let existUser = false;
-  connection.query(
-    `SELECT * FROM users where username = ? `,
-    [user.username],
-    (err, rows: any) => {
-      if (rows?.length > 0) {
-        existUser = true;
-        res.status(304).json({ error: "Exist user" });
+    if (!user.username || !user.password) {
+      console.log('Missing credentials');
+      return res.status(400).json({
+        success: false,
+        error: "Username and password are required"
+      });
+    }
+
+    console.log('Checking for existing user...');
+    const [existingUsers] = await connection.query<UserRow[]>(
+      `SELECT * FROM users where username = ?`,
+      [user.username]
+    );
+
+    if (existingUsers.length > 0) {
+      console.log('User already exists');
+      return res.status(304).json({ 
+        success: false,
+        error: "User already exists" 
+      });
+    }
+
+    console.log('Inserting new user...');
+    await connection.query(
+      `INSERT INTO users (uuid, username, password, created_at) VALUES (?, ?, ?, ?)`,
+      [user.uuid, user.username, user.password, user.created_at]
+    );
+
+    const response = {
+      success: true,
+      user: {
+        uuid: user.uuid,
+        username: user.username,
+        created_at: user.created_at
       }
-    }
-  );
-
-  // save user to database
-  connection.query(
-    `INSERT INTO users (uuid, username, password, created_at) VALUES (?, ?, ?, ?)`,
-    [user.uuid, user.username, user.password, user.created_at],
-    (err, rows) => {
-      if (err) throw err;
-      console.log(user);
-      res.send(user);
-    }
-  );
+    };
+    console.log('Sending register success response:', response);
+    res.json(response);
+  } catch (err: any) {
+    console.error('Register error:', err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 });
 
 // save history
-router.post("/history/save", (req, res) => {
-  let history = {
-    uuid: uuidv4(),
-    created_at: new Date(),
-    user_uuid: req.body.user_uuid,
-  };
-  // save history to database
-  connection.query(
-    `INSERT INTO historys (uuid, created_at, user_uuid) VALUES (?, ?, ?)`,
-    [history.uuid, history.created_at, history.user_uuid],
-    (err, rows) => {
-      if (err) throw err;
-    }
-  );
-  res.send(history);
+router.post("/history/save", async (req, res) => {
+  try {
+    const history = {
+      uuid: uuidv4(),
+      created_at: new Date(),
+      user_uuid: req.body.user_uuid,
+    };
+
+    await connection.query(
+      `INSERT INTO historys (uuid, created_at, user_uuid) VALUES (?, ?, ?)`,
+      [history.uuid, history.created_at, history.user_uuid]
+    );
+    res.json({
+      success: true,
+      data: history
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 });
 
 //get history by user_uuid
-router.get("/history/:user_uuid", (req, res) => {
-  const user_uuid = req.params.user_uuid;
-  connection.query(
-    `SELECT * FROM historys WHERE user_uuid = ?`,
-    [user_uuid],
-    (err, rows) => {
-      if (err) throw err;
-      res.send(rows);
-    }
-  );
+router.get("/history/:user_uuid", async (req, res) => {
+  try {
+    const user_uuid = req.params.user_uuid;
+    const [rows] = await connection.query(
+      `SELECT * FROM historys WHERE user_uuid = ?`,
+      [user_uuid]
+    );
+    res.json({
+      success: true,
+      data: rows
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: err.message || "Internal server error"
+    });
+  }
 });
 
 // save conversation
 router.post("/conversation/save", async (req, res) => {
   try {
-    let log = {
+    const log = {
       uuid: uuidv4(),
       number_sentence: req.body.number_sentence,
       sentences: req.body.sentences,
@@ -180,8 +293,8 @@ router.post("/conversation/save", async (req, res) => {
       created_at: new Date(),
       role: "user",
     };
-    // save log to database
-    connection.query(
+
+    await connection.query(
       `INSERT INTO logs (uuid, number_sentence, sentences, history_uuid, created_at, item_role) VALUES (?, ?, ?, ?, ?, ?)`,
       [
         log.uuid,
@@ -190,10 +303,7 @@ router.post("/conversation/save", async (req, res) => {
         log.history_uuid,
         log.created_at,
         log.role,
-      ],
-      (err, rows) => {
-        if (err) throw err;
-      }
+      ]
     );
 
     const chatCompletion = await openai.chat.completions.create({
@@ -202,7 +312,6 @@ router.post("/conversation/save", async (req, res) => {
     });
 
     const openaimessage = chatCompletion.choices[0].message.content;
-    console.log("conversation/save", openaimessage);
 
     await connection.query(
       `INSERT INTO logs (uuid, number_sentence, sentences, history_uuid, created_at, item_role) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -213,36 +322,47 @@ router.post("/conversation/save", async (req, res) => {
         log.history_uuid,
         new Date(),
         "system",
-      ],
-      (err, rows) => {
-        if (err) throw err;
-        res.send({
-          message: openaimessage,
-        });
-      }
+      ]
     );
-  } catch (error) {
-    console.log("conversation/save", error);
+
+    res.json({
+      success: true,
+      message: openaimessage,
+      userMessage: log
+    });
+  } catch (error: any) {
+    console.error("conversation/save", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
   }
 });
 
 //get log by history_uuid
-router.get("/conversation/:history_uuid", (req, res) => {
-  const history_uuid = req.params.history_uuid;
-  connection.query(
-    `SELECT * FROM logs WHERE history_uuid = ?`,
-    [history_uuid],
-    (err, rows) => {
-      if (err) throw err;
-      console.log(rows);
-      res.send(rows);
-    }
-  );
+router.get("/conversation/:history_uuid", async (req, res) => {
+  try {
+    const history_uuid = req.params.history_uuid;
+    const [rows] = await connection.query(
+      `SELECT * FROM logs WHERE history_uuid = ?`,
+      [history_uuid]
+    );
+    res.json({
+      success: true,
+      data: rows
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 });
 
 router.post("/conversation/translate", async (req, res) => {
-  const { text, targetLanguage } = req.body;
   try {
+    const { text, targetLanguage } = req.body;
     const chatCompletion = await openai.chat.completions.create({
       messages: [
         {
@@ -253,14 +373,17 @@ router.post("/conversation/translate", async (req, res) => {
       model: "gpt-3.5-turbo",
     });
 
-    console.log(chatCompletion);
     const translationText = chatCompletion.choices[0].message.content;
-    console.log("conversation/translate", translationText);
-    res.send({
-      translatedText: translationText,
+    res.json({
+      success: true,
+      translatedText: translationText
     });
-  } catch (error) {
-    console.log("conversation/translate", error);
+  } catch (error: any) {
+    console.error("conversation/translate", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
   }
 });
 

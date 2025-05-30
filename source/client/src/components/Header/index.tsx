@@ -1,6 +1,7 @@
 import React from "react";
-import { Navbar, Nav, Container } from "react-bootstrap";
-import { RiLogoutBoxRFill } from "react-icons/ri";
+import { Navbar, Container } from "react-bootstrap";
+import { RiAccountBoxFill, RiLogoutBoxRFill } from "react-icons/ri";
+import { FaUser } from "react-icons/fa";
 import { useAuth } from "../../providers/AuthContext";
 
 // Add your logo image (if needed)
@@ -25,6 +26,12 @@ const Header: React.FC<HeaderProps> = () => {
                         Signed in as: User Name
                     </Navbar.Text>
                 </Navbar.Collapse> */}
+        {state.user?.username && (
+          <div style={{ display: 'flex', alignItems: 'right', color: 'white', marginRight: '20px' }}>
+            <RiAccountBoxFill size={30} color="white" />
+            <span style={{ fontSize: '20px' }}>Xin chào: {state.user.username}!</span>
+          </div>
+        )}
         <div className="logout">
           <RiLogoutBoxRFill size={30} color="white" />
           <button onClick={serviceLoggout}>Logout</button>

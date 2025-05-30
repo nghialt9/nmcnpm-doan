@@ -1,6 +1,6 @@
-create schema db_tkpm;
+create schema db_nmcnpm;
 
-use db_tkpm;
+use db_nmcnpm;
 CREATE TABLE  IF NOT EXISTS users (
   uuid char(36),
   username varchar(30) NOT NULL,

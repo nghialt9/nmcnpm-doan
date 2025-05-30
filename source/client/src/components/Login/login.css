@@ -4,26 +4,35 @@ div.container-login {
   justify-content: center;
   align-items: center;
   min-height: 94.1vh;
-  background: url(/src/components/Assets/ffe3bbdb-c410-4e9d-b0e3-b97dc9955a8b.jpg);
+  background: url(/assets/ffe3bbdb-c410-4e9d-b0e3-b97dc9955a8b.jpg);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
+  position: relative;
+}
+
+div.container-login::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 div.wrapper {
   position: relative;
   width: 420px;
-  height: 520px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  border: 5px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   display: flex;
-  align-items: center;
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   overflow: hidden;
-  transition: height .2s ease;
+  z-index: 1;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 div.wrapper.active {
@@ -32,7 +41,7 @@ div.wrapper.active {
 
 div.wrapper .form-box {
   width: 100%;
-  padding: 40px;
+  padding: 20px;
 }
 
 div.wrapper .form-box.login {
@@ -57,32 +66,32 @@ div.wrapper.active .form-box.register {
 }
 
 div.h1 {
-  font-size: 36px;
+  font-size: 30px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 div.input-box {
   position: relative;
   width: 100%;
-  height: 50px;
-  margin: 30px 0;
+  height: 45px;
+  margin: 25px 0;
 }
 
 div.input-box input {
   width: 100%;
   height: 100%;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.3);
   outline: none;
-  border: 5px solid rgba(255, 255, 255, 0.1);
-  border-radius: 40px;
+  border: none;
+  border-radius: 25px;
   font-size: 16px;
   color: #fff;
-  padding: 20px 20px 20px 45px;
+  padding: 0 20px 0 45px;
 }
 
 div.input-box input::placeholder {
-  color: #fff;
-  padding-left: 5px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 div.input-box .icon {
@@ -91,13 +100,14 @@ div.input-box .icon {
   top: 50%;
   translate: 0 -50%;
   font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 div.remember-forgot {
   display: flex;
   justify-content: space-between;
-  font-size: 14.5px;
-  margin: -15px 0px 15px;
+  font-size: 13px;
+  margin: -10px 0 15px;
 }
 
 div.remember-forgot label input {
@@ -105,41 +115,81 @@ div.remember-forgot label input {
   margin-right: 4px;
 }
 
-div.remember-forgot a {
+div.remember-forgot a,
+div.remember-forgot button {
   color: #fff;
   text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
 }
 
-div.remember-forgot a:hover {
+div.remember-forgot a:hover,
+div.remember-forgot button:hover {
   text-decoration: underline;
 }
 
-form button {
+form button[type="submit"] {
   width: 100%;
   height: 45px;
   background: #fff;
   border: none;
   outline: none;
-  border-radius: 40px;
+  border-radius: 25px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   font-size: 16px;
   color: #333;
   font-weight: 700;
+  transition: .3s ease;
+  margin-top: 20px;
+}
+
+form button[type="submit"]:hover {
+    background: #f0f0f0;
 }
 
 div.register-link {
-  font-size: 14.5px;
+  font-size: 13px;
   text-align: center;
   margin: 20px 0 15px;
 }
 
-div.register-link p a {
+div.register-link p a,
+div.register-link p button {
   color: #fff;
   text-decoration: none;
   font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
 }
 
-div.register-link p a:hover {
+div.register-link p a:hover,
+div.register-link p button:hover {
   text-decoration: underline;
+}
+
+button.link-button {
+    display: inline;
+    margin-left: 5px;
+}
+
+/* Added style for error message */
+.error-message {
+    color: #dc3545; /* A standard error red */
+    background-color: #f8d7da; /* Light red background */
+    border: 1px solid #f5c6cb; /* Red border */
+    padding: 10px; /* Add padding */
+    margin-top: 15px; /* Space from button */
+    font-size: 14px;
+    text-align: center;
+    border-radius: 5px; /* Rounded corners */
+    display: block; /* Ensure it takes up space */
+    width: 100%; /* Take full width of parent */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
 }

@@ -1,19 +1,25 @@
 .App {
   min-height: 94.1vh;
   display: flex;
-  background: #cde8e5;
-  color: white;
+  color: #333;
+  background: linear-gradient(to right top, #1a2a3a, #2a3a4a, #3a4a5a);
 }
 
 .sidebar {
   flex: 3;
-  border-right: 1px solid rgb(100, 100, 100);
   display: flex;
   flex-direction: column;
+  background: #e0e0e0;
+  padding: 10px 0;
+  border-radius: 10px;
+  margin: 0;
+  color: #333;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  margin-right: 10px;
 }
 
 .top {
-  padding: 2.5rem;
+  padding: 1rem;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -42,12 +48,15 @@
 
 .titleSideBar {
   padding: 10px;
-  color: #4d869c;
+  color: #333;
+  margin-bottom: 10px;
 }
 
 .titleSideBar h1 {
   padding: 5px;
-  border-bottom: 1px solid rgb(100, 100, 100);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+  font-size: 1.5rem;
 }
 
 .newChat {
@@ -55,147 +64,274 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0px 10px;
-  background-color: #7ab2b2;
-  border-radius: 50px;
+  padding: 5px 10px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
 }
 
 .newChat button {
-  margin: 7px;
-  text-align: justify;
-  font-size: 25px;
+  margin: 5px;
+  text-align: left;
+  font-size: 20px;
   background: transparent;
   border: none;
-  color: white;
+  color: #fff;
   width: 100%;
+  cursor: pointer;
 }
 
 .historyList {
-  padding: 10px;
+  padding: 0 10px;
   flex: 1;
   display: flex;
+  flex-direction: column;
 }
 
 .list {
   flex: 1;
   overflow-y: auto;
   scroll-behavior: smooth;
-  /* height: 460px; */
-  padding: 10px;
+  padding-right: 5px;
 }
 
 .detailList {
-  margin-bottom: 10px;
-  border-radius: 10px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  background: transparent;
+  color: #333;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  margin: 0 10px 5px 10px;
+}
+
+.detailList:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.detailList.active {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.detailList .history-date {
+    flex-grow: 1;
+    font-size: 1rem;
 }
 
 .chatting {
   flex: 9;
+  display: flex;
+  flex-direction: column;
+  background: #f0f0f0;
+  border-radius: 10px;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  margin-left: 10px;
 }
 
 .titleMain {
-  padding: 10px;
-  color: #4d869c;
+  padding: 15px;
+  color: #333;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
 }
 
 .titleMain h1 {
-  padding: 5px;
-  border-bottom: 1px solid rgb(100, 100, 100);
+  padding: 0;
+  border-bottom: none;
+  color: #333;
+  font-size: 1.5rem;
 }
 
 .main {
   min-height: calc(100vh - 14rem);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin: 1rem 5rem;
+  margin: 0;
+  flex-grow: 1;
+  padding: 20px;
 }
 
 .chats {
-  overflow: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   scroll-behavior: smooth;
   width: 100%;
-  max-width: 70rem;
-  height: calc(100vh - 20rem);
+  flex-grow: 1;
+  padding-right: 10px;
+  color: #333;
 }
 
 .chat {
-  margin: 1rem;
-  padding: 10px;
-  font-size: 1.2rem;
+  margin-bottom: 15px;
+  padding: 0;
+  font-size: 1rem;
   display: flex;
   align-items: flex-start;
-  text-align: justify;
+  max-width: 85%;
+  word-break: break-word;
+  position: relative;
+  clear: both;
 }
 
-.txt {
-  margin-left: 2rem;
+.chat .txt {
+  margin-left: 10px;
+  margin-right: 10px;
+  color: #333;
+  padding: 10px 15px;
+  border-radius: 15px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .user {
-  padding-top: 20px;
-  background: #7ab2b2;
-  width: fit-content;
-  border-radius: 0.5rem;
+  background: none;
+  margin-left: auto;
+  margin-right: 0;
+  flex-direction: row-reverse;
+}
+
+.user .txt {
+    background: #dcf8c6;
+    margin-left: 0;
+    margin-right: 10px;
+    border-radius: 15px 15px 0 15px;
 }
 
 .bott {
-  padding-top: 20px;
-  background: #4d869c;
-  width: fit-content;
-  border-radius: 0.5rem;
+  background: none;
+  margin-left: 0;
+  margin-right: auto;
+  flex-direction: row;
 }
 
-.bott .botFunction .speaker {
-  background: transparent;
-  border: none;
-  margin-left: 15px;
+.bott .txt {
+    background: #e9e9eb;
+    margin-left: 10px;
+    margin-right: 0;
+    border-radius: 15px 15px 15px 0;
 }
 
-.bott .botFunction .translate {
-  background: transparent;
-  border: none;
-  margin-left: 15px;
-  margin-top: 10px;
+.bott .botFunction {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+    gap: 5px;
+    flex-direction: column;
+}
+
+.bott .botFunction button {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    padding: 5px 10px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: auto;
+}
+
+.bott .botFunction button:hover {
+    background: #e9e9eb;
+    border-color: #bbbbbb;
 }
 
 .chatFooter {
-  margin-top: 3%;
+  margin-top: 10px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 10px 20px;
+  background: #ffffff;
+  border-top: none;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .inp {
-  padding: 0.1rem;
+  padding: 5px 15px;
   display: flex;
   align-items: center;
-  border-radius: 0.5rem;
-  border: 4px solid #4d869c;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #ffffff;
   width: 100%;
+  max-width: 70rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.inp:focus-within {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-color: #007bff;
 }
 
 .inp > input {
-  width: calc(100% - 3rem);
+  flex-grow: 1;
   outline: none;
-  padding: 1.25rem;
-  color: #4d869c;
-  font-size: 25px;
-}
-
-.inp > input,
-.send {
+  padding: 12px 15px;
+  color: #333;
+  font-size: 1rem;
   background: transparent;
   border: none;
+  transition: all 0.3s ease;
 }
 
-.inp > input,
-.micro {
-  background: transparent;
+.inp > input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+  font-style: italic;
+}
+
+.send, .micro {
+  padding: 8px;
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #007bff;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.send:hover, .micro:hover {
+  color: #ffffff;
+  background: #0056b3;
+  transform: scale(1.05);
+}
+
+.send:active, .micro:active {
+  transform: scale(0.95);
+}
+
+/* Add animation for recording state */
+.micro.recording {
+  animation: pulse 1.5s infinite, glowing 1.5s infinite;
+}
+
+@keyframes glowing {
+  0% {
+    box-shadow: 0 0 5px #007bff, 0 0 10px #007bff, 0 0 15px #007bff;
+  }
+  50% {
+    box-shadow: 0 0 10px #007bff, 0 0 15px #007bff, 0 0 20px #007bff;
+  }
+  100% {
+    box-shadow: 0 0 5px #007bff, 0 0 10px #007bff, 0 0 15px #007bff;
+  }
+}
+
+@keyframes pulse {
+  /* Removed white pulse as glowing effect is added */
 }
 
 /* width */
@@ -205,17 +341,173 @@
 
 /* Track */
 ::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px grey;
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #4d869c;
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 10px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #7ab2b2;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Added style for chat error message */
+.error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 5px;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.chat-error-message {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ffc107;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+
+.chat .user-label,
+.chat .bot-label {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #555;
+    font-size: 1rem;
+    margin-bottom: 2px;
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
+.user .user-label {
+    text-align: right;
+}
+
+/* Translation Popup Styles */
+.translation-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: popupFadeIn 0.3s ease;
+}
+
+.translation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.translation-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #e9ecef;
+  color: #343a40;
+}
+
+.translation-content {
+  padding: 20px;
+}
+
+.translation-item {
+  margin-bottom: 15px;
+}
+
+.translation-item:last-child {
+  margin-bottom: 0;
+}
+
+.translation-item .label {
+  display: block;
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.translation-item .text {
+  margin: 0;
+  padding: 10px 15px;
+  background: #ffffff;
+  border-radius: 8px;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.speak-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speak-btn:hover {
+  background: #0056b3;
+}
+
+.speak-btn:active {
+  transform: scale(0.98);
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
