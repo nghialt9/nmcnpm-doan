@@ -218,11 +218,7 @@ router.post("/user/register", async (req, res) => {
 
     const response = {
       success: true,
-      user: {
-        uuid: user.uuid,
-        username: user.username,
-        created_at: user.created_at
-      }
+      message: "Registration successful. Please login to continue."
     };
     console.log('Sending register success response:', response);
     res.json(response);

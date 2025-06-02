@@ -17,6 +17,12 @@ interface User {
   created_at: string;
 }
 
+interface AuthResponse {
+  success: boolean;
+  user?: User;
+  error?: string;
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
@@ -81,7 +87,7 @@ const AuthContext = createContext<
       state: AuthState;
       dispatch: React.Dispatch<Action>;
       login: (username: string, password: string) => Promise<void>;
-      register: (username: string, password: string) => Promise<void>;
+      register: (username: string, password: string) => Promise<AuthResponse>;
       logout: () => void;
       clearError: () => void;
     }
@@ -94,11 +100,19 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      console.log("storedUser load", user);
-
-      // Dispatch LOGIN_SUCCESS from localStorage if user data exists
-      dispatch({ type: "LOGIN_SUCCESS", payload: user });
+      try {
+        const user = JSON.parse(storedUser);
+        // Only set the state if the user data is valid
+        if (user && user.uuid && user.username) {
+          dispatch({ type: "LOGIN_SUCCESS", payload: user });
+        } else {
+          // If user data is invalid, clear it
+          localStorage.removeItem("user");
+        }
+      } catch (error) {
+        // If JSON parsing fails, clear the invalid data
+        localStorage.removeItem("user");
+      }
     }
   }, []); // Run only once on mount
 
@@ -123,24 +137,32 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const register = async (username: string, password: string) => {
     try {
       const response = await serviceRegister(username, password);
-      if (response.success && response.user) {
-        dispatch({ type: "REGISTER_SUCCESS", payload: response.user });
-        localStorage.setItem("user", JSON.stringify(response.user));
+      if (response.success) {
+        // Don't automatically authenticate after registration
+        dispatch({ type: "CLEAR_ERROR" });
+        return response;
       } else {
         console.error("Registration failed:", response.error);
+        // Set the error message from the server
         dispatch({ type: "LOGIN_FAILURE", payload: response.error || "Registration failed." });
-        localStorage.removeItem("user");
+        return response; // Return the response with error
       }
     } catch (error: any) {
       console.error("Registration failed:", error);
+      // Set the error message from the network error
       dispatch({ type: "LOGIN_FAILURE", payload: error.message || "Registration failed due to network error." });
-      localStorage.removeItem("user");
+      throw error;
     }
   };
 
   const logout = () => {
     dispatch({ type: "LOGOUT" });
+    // Clear all user-related data from localStorage
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    // Clear any other user-related data
+    sessionStorage.clear();
   };
 
   const clearError = () => {
