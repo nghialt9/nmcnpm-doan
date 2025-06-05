@@ -301,6 +301,11 @@
   height: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-left: 8px; /* thêm khoảng cách giữa hai nút */
+}
+
+.send {
+  margin-left: 0; /* nút đầu tiên không bị đẩy sang phải */
 }
 
 .send:hover, .micro:hover {
@@ -333,6 +338,7 @@
 @keyframes pulse {
   /* Removed white pulse as glowing effect is added */
 }
+
 
 /* width */
 ::-webkit-scrollbar {
@@ -510,4 +516,80 @@
     opacity: 1;
     transform: translate(-50%, -50%);
   }
+}
+/* Saved-words sidebar inherits detailList */
+.savedwords-section .detailList.active {
+  background: rgba(0, 123, 255, 0.2); /* khác màu History một chút */
+}
+
+/* popup buttons layout */
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.save-btn,
+.speak-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-btn {
+  background: #28a745;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #218838;
+} 
+
+.speak-btn {
+  background: #007bff;
+  color: white;
+}
+
+.speak-btn:hover {
+  background: #0056b3;
+}
+/* ---------- Saved-Words layout ---------- */
+.savedwords-section {
+  flex: 1;                     /* cho phép chiếm hết chiều cao còn lại */
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.savedWordsList {
+  flex: 1;                     /* danh sách cao tối đa */
+  overflow-y: auto;            /* cuộn khi nhiều từ */
+}
+
+.saved-word-display {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 10px 20px; /* cách đều hai bên và cách phần chat bên dưới */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+.saved-word-display h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  color: #007bff;
+}
+
+.saved-word-display p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #555555;
 }
