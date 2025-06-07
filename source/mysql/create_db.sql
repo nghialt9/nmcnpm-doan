@@ -32,5 +32,11 @@ CREATE TABLE  IF NOT EXISTS users (
   CONSTRAINT fk_historys_logs_from_history FOREIGN KEY (history_uuid) REFERENCES historys(uuid)
   );
   
-  
-  
+  CREATE TABLE IF NOT EXISTS saved_words (
+  id CHAR(36) PRIMARY KEY,
+  user_uuid CHAR(36) NOT NULL,
+  word VARCHAR(255) NOT NULL,
+  meaning TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_uuid) REFERENCES users(uuid)
+);

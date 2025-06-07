@@ -70,6 +70,14 @@ dbInitializedPromise = (async () => {
         item_role char(36),
         CONSTRAINT fk_historys_logs_from_history FOREIGN KEY (history_uuid) REFERENCES historys(uuid)
       );`,
+      `CREATE TABLE IF NOT EXISTS saved_words (
+        id char(36) PRIMARY KEY,
+        user_uuid char(36) NOT NULL,
+        word varchar(255) NOT NULL,
+        meaning text NOT NULL,
+        created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_savedwords_user FOREIGN KEY (user_uuid) REFERENCES users(uuid)
+      );`,
     ];
 
     for (const sql of sqlInitTables) {
@@ -384,3 +392,37 @@ router.post("/conversation/translate", async (req, res) => {
 });
 
 export default router;
+
+// — POST /api/words/save — save one word+meaning for the current user
+router.post("/words/save", async (req, res) => {
+  try {
+    const { user_uuid, word, meaning } = req.body;
+    if (!user_uuid || !word || !meaning) {
+      return res.status(400).json({ success: false, error: "Missing fields" });
+    }
+    const id = uuidv4();
+    await connection.query(
+      `INSERT INTO saved_words (id, user_uuid, word, meaning) VALUES (?,?,?,?)`,
+      [id, user_uuid, word, meaning]
+    );
+    res.json({ success: true, data: { id, user_uuid, word, meaning } });
+  } catch (err: any) {
+    console.error("words/save", err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
+// — GET /api/words/:user_uuid — fetch all saved words for this user
+router.get("/words/:user_uuid", async (req, res) => {
+  try {
+    const user_uuid = req.params.user_uuid;
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT id, word, meaning, created_at FROM saved_words WHERE user_uuid = ? ORDER BY created_at DESC`,
+      [user_uuid]
+    );
+    res.json({ success: true, data: rows });
+  } catch (err: any) {
+    console.error("words/get", err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});

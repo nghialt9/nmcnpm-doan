@@ -169,3 +169,24 @@ export const translate = async (text: string): Promise<ChatResponse> => {
     };
   }
 };
+// Save one word for a user
+export const saveWordForUser = async (user_uuid: string, word: string, meaning: string) => {
+  try {
+    const response = await apiCaller(`${BASE_URL}/words/save`, "POST", { user_uuid, word, meaning });
+    return { success: response.success, data: response.data, error: response.error };
+  } catch (err) {
+    console.error("Error saveWordForUser:", err);
+    return { success: false, error: "Failed to save word" };
+  }
+};
+
+// Fetch saved words for a user
+export const getSavedWordsForUser = async (user_uuid: string) => {
+  try {
+    const response = await apiCaller(`${BASE_URL}/words/${user_uuid}`, "GET", null);
+    return { success: response.success, data: response.data, error: response.error };
+  } catch (err) {
+    console.error("Error getSavedWordsForUser:", err);
+    return { success: false, error: "Failed to fetch saved words" };
+  }
+};

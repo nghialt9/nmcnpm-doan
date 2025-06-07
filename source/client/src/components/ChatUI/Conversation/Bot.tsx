@@ -75,16 +75,17 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
     }
   };
 
-  const handleSpeak = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const text = translation || selectedText;
-    if (!text) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US"; // mặc định đọc tiếng Anh (có thể sửa)
-    window.speechSynthesis.speak(utterance);
-  };
+    const handleSpeak = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.preventDefault();
+  e.stopPropagation();
+  // Always speak the original English selection
+  if (!selectedText) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(selectedText);
+  utterance.lang = "en-US";
+  window.speechSynthesis.speak(utterance);
+};
+
 
   /* click‑outside */
   useOutsideAlerter(popupRef, clearPopup);
@@ -130,7 +131,7 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
             <button type="button" className="save-btn" onClick={handleSave} disabled={isTranslating || !translation}>
               Save Word
             </button>
-            <button type="button" className="speak-btn" onClick={handleSpeak} disabled={!translation && !selectedText}>
+            <button type="button" className="speak-btn" onClick={handleSpeak} disabled={!selectedText}>
               Speak
             </button>
           </div>

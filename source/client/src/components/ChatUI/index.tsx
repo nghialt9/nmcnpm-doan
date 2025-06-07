@@ -4,6 +4,7 @@ import { IoSend } from "react-icons/io5";
 import { FaMicrophone } from "react-icons/fa6";
 import { IoMdAddCircle } from "react-icons/io";
 import { useAuth } from "../../providers/AuthContext";
+import { saveWordForUser, getSavedWordsForUser } from "../../services/chat";
 import {
   saveHistories,
   getHistories,
@@ -189,16 +190,30 @@ const Chat: React.FC = () => {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    if (state.user?.uuid) {
+      getSavedWordsForUser(state.user.uuid).then(res => {
+        if (res.success && Array.isArray(res.data)) {
+          setSavedWords(res.data.map((row: any) => ({
+            text: row.word,
+            meaning: row.meaning
+          })));
+        }
+      });
+    }
+  }, [state.user?.uuid]);
 
-  const handleSaveWord = (word: string, meaning: string) => {
-    const clean = word.trim().toLowerCase();
-    setSavedWords((prev) => {
-      if (prev.some((w) => w.text.trim().toLowerCase() === clean)) return prev;
-      const newEntry = { text: word.trim(), meaning: meaning.trim() };
-      return [...prev, newEntry];
-    });
-    setSelectedSavedWord({ text: word.trim(), meaning: meaning.trim() });
-  };
+  const handleSaveWord = async (word: string, meaning: string) => {
+  if (!state.user?.uuid) return;
+  const res = await saveWordForUser(state.user.uuid, word, meaning);
+  if (res.success && res.data) {
+    // prepend to the UI list
+    setSavedWords(prev => [{ text: res.data.word, meaning: res.data.meaning }, ...prev]);
+  } else {
+    console.error("Could not save word:", res.error);
+  }
+};
+
 
   /* ------------------------------- RENDER --------------------------------- */
   return (
