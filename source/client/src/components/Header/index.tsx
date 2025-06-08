@@ -12,30 +12,36 @@ const Header: React.FC<HeaderProps> = () => {
   const { state, logout: serviceLoggout } = useAuth();
 
   return (
-    <Navbar bg="#7ab2b2" expand="lg" style={{ background: "#7ab2b2" }}>
+    <Navbar bg="#7ab2b2" expand="lg" style={{ background: "#0056b3" }}>
       <Container style={{ maxHeight: "64px" }}>
-        <Navbar.Brand
-          style={{ fontSize: "3rem", fontWeight: "bold", color: "orange" }}
-          href="/"
-        >
-          MindForge
-        </Navbar.Brand>
-        {/* Add logo if desired */}
-        {/* <Navbar.Collapse className="justify-content-end">
-                    <Navbar.Text>
-                        Signed in as: User Name
-                    </Navbar.Text>
-                </Navbar.Collapse> */}
-        {state.user?.username && (
-          <div style={{ display: 'flex', alignItems: 'right', color: 'white', marginRight: '20px' }}>
-            <RiAccountBoxFill size={30} color="white" />
-            <span style={{ fontSize: '20px' }}>Xin chào: {state.user.username}!</span>
-          </div>
-        )}
-        <div className="logout">
-          <RiLogoutBoxRFill size={30} color="white" />
-          <button onClick={serviceLoggout}>Logout</button>
+      <Navbar.Brand
+        style={{ fontSize: "3rem", fontWeight: "bold", color: "orange" }}
+        href="/"
+      >
+        SpeakSphere
+      </Navbar.Brand>
+      {state.user?.username && (
+        <div style={{ display: 'flex', alignItems: 'right', color: 'white', marginRight: '20px' }}>
+        <RiAccountBoxFill size={30} color="white" />
+        <span style={{ fontSize: '20px' }}>Xin chào: {state.user.username}!</span>
         </div>
+      )}
+      <div className="logout" style={{ display: 'flex', alignItems: 'center' }}>
+        <RiLogoutBoxRFill size={30} color="white" />
+        <button
+        onClick={serviceLoggout}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'white',
+          fontSize: '20px',
+          cursor: 'pointer',
+          marginLeft: '8px'
+        }}
+        >
+        Logout
+        </button>
+      </div>
       </Container>
     </Navbar>
   );

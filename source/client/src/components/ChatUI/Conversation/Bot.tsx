@@ -44,7 +44,6 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
   const range = sel.getRangeAt(0);
   const rect = range.getBoundingClientRect();
 
-  // ✅ Lấy phần tử chứa vùng chat cuộn ngang/dọc
   const chatsEl = document.querySelector(".chats");
   const scrollTop = chatsEl?.scrollTop || 0;
 
@@ -111,7 +110,6 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
         <div
           ref={popupRef}
           className="translation-popup"
-          style={{ top: popupPos.top + 20, left: popupPos.left }}
         >
           <div className="translation-header">
             <h4>Translation</h4>

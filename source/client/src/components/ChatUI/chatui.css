@@ -1,8 +1,9 @@
 .App {
-  min-height: 94.1vh;
+  height: 90vh;  
   display: flex;
-  color: #333;
+  color: #ffffff;
   background: linear-gradient(to right top, #1a2a3a, #2a3a4a, #3a4a5a);
+  overflow: hidden; 
 }
 
 .sidebar {
@@ -13,6 +14,7 @@
   padding: 10px 0;
   border-radius: 10px;
   margin: 0;
+  
   color: #333;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   margin-right: 10px;
@@ -65,7 +67,7 @@
   align-items: center;
   gap: 10px;
   padding: 5px 10px;
-  background-color: rgba(255, 130, 40, 0.2);
+  background-color:#a8cff4;
   border-radius: 25px;
 }
 
@@ -114,7 +116,9 @@
 .detailList.active {
     background: rgba(0, 0, 0, 0.1);
 }
-
+list-group-item.active {
+  border-color: white;
+}
 .detailList .history-date {
     flex-grow: 1;
     font-size: 1rem;
@@ -184,8 +188,14 @@
   padding: 10px 15px;
   border-radius: 15px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background: white;
 }
-
+div::-webkit-scrollbar {
+  width: 0.5rem;
+}
+::-webkit-scrollbar {
+  width: 3px;
+}
 .user {
   background: none;
   margin-left: auto;
@@ -194,61 +204,70 @@
 }
 
 .user .txt {
-    background: #dcf8c6;
+    background: #a8cff4;
     margin-left: 0;
     margin-right: 10px;
     border-radius: 15px 15px 0 15px;
 }
-
 .bott {
+  position: relative;
+  margin-bottom: 2.5rem;
   background: none;
   margin-left: 0;
   margin-right: auto;
   flex-direction: row;
 }
 
-.bott .txt {
-    background: #e9e9eb;
-    margin-left: 10px;
-    margin-right: 0;
-    border-radius: 15px 15px 15px 0;
+.bott .botFunction {
+  position: absolute;
+  bottom: -2rem;
+  left: 5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
 }
 
-.bott .botFunction {
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
-    gap: 5px;
-    flex-direction: column;
-}
 
 .bott .botFunction button {
-    background: #ffffff;
-    border: 1px solid #cccccc;
-    border-radius: 8px;
-    padding: 5px 10px;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: #ffffff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.1s;
 }
 
+/* Hover/active giữ nguyên như cũ */
 .bott .botFunction button:hover {
-    background: #e9e9eb;
-    border-color: #bbbbbb;
+  background: #f1f1f4;
+  transform: translateY(-1px);
 }
+.bott .botFunction button:active {
+  transform: translateY(0);
+}
+
+/* Icon bên trong cũng đồng tỉ lệ */
+.bott .botFunction button svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+
 
 .chatFooter {
   margin-top: 10px;
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  background: #ffffff;
-  border-top: none;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  justify-content: center;   
+  padding: 0;               
+  background: transparent;  
+  box-shadow: none;     
 }
 
 .inp {
@@ -262,7 +281,7 @@
   max-width: 70rem;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  margin-top: 10px;
+  margin-top: 0px;
 }
 
 .inp:focus-within {
@@ -301,7 +320,8 @@
   height: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-left: 8px; /* thêm khoảng cách giữa hai nút */
+  margin-left: 8px; 
+  margin-right: 10px;
 }
 
 .send {
@@ -403,21 +423,20 @@
     text-align: right;
 }
 
-/* Translation Popup Styles */
 .translation-popup {
-  position: absolute;
+  position: fixed;                
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 90%;
   max-width: 400px;
-  overflow: hidden;
-  z-index: 1000;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 10000;
   animation: popupFadeIn 0.3s ease;
 }
+
 
 .translation-header {
   display: flex;
@@ -517,12 +536,12 @@
     transform: translate(-50%, -50%);
   }
 }
-/* Saved-words sidebar inherits detailList */
+
 .savedwords-section .detailList.active {
-  background: rgba(0, 123, 255, 0.2); /* khác màu History một chút */
+  background: rgba(0, 123, 255, 0.2); 
 }
 
-/* popup buttons layout */
+
 .popup-actions {
   display: flex;
   justify-content: space-between;

@@ -59,6 +59,8 @@ const ButtonSpeaker = ({ text }: { text: string }) => {
       <button
         className={`speaker ${!isPlaying ? "" : "pointer"}`}
         onClick={_handlePlay}
+        title="Play text to speech"
+        aria-label="Play text to speech"
       >
         <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <FaVolumeUp color="cadetblue" />

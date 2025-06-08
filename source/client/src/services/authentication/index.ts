@@ -16,11 +16,6 @@ export const login = async (
   username: string,
   password: string
 ): Promise<AuthResponse> => {
-  // return new Promise((resolve, reject) => {
-  //   setTimeout(() => {
-  //     resolve();
-  //   }, 1000);
-  // });
 
   return apiCaller(`${BASE_URL}/user/login`, "POST", { username, password });
 };
