@@ -339,6 +339,12 @@ const Chat: React.FC = () => {
                   type="text"
                   ref={inputRef}
                   placeholder="Ask me anything...."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      _handleSendText(e);
+                    }
+                  }}
                 />
                 <button
                   style={{ width: "auto" }}
