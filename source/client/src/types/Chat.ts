@@ -3,6 +3,7 @@ export interface Message {
   content: string;
   role?: string;
   uuid?: string;
+  created_at?: string;
 }
 
 export interface ChatProps {}

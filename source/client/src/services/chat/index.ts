@@ -81,8 +81,8 @@ export const getConversationByHistoryId = async (
         sender: item.sender,
         content: item.sentences,
         role: item.item_role,
+        created_at: item.created_at,
       }));
-
     return {
       success: true,
       conversations
@@ -170,6 +170,7 @@ export const translate = async (text: string): Promise<ChatResponse> => {
     };
   }
 };
+
 // Save one word for a user
 export const saveWordForUser = async (user_uuid: string, word: string, meaning: string) => {
   try {

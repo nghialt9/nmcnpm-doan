@@ -142,6 +142,7 @@ const Chat: React.FC = () => {
           sender: c.sender,
           content: c.content,
           role: c.role || "",
+          created_at: c.created_at
         }));
         setConversation(convs);
       }
@@ -171,6 +172,7 @@ const Chat: React.FC = () => {
         sender: "user",
         content: text,
         role: "user",
+        created_at: new Date().toISOString()
       };
       setConversation((prev) => [...prev, userMsg]);
 
@@ -188,6 +190,7 @@ const Chat: React.FC = () => {
             sender: "system",
             content: res.message,
             role: "system",
+            created_at: new Date().toISOString()
           };
           setConversation((prev) => [...prev, botMsg]);
           setSuggestions(res.suggestions || []);
@@ -306,9 +309,9 @@ const Chat: React.FC = () => {
               {conversation.map((msg) => (
                 <Fragment key={msg.uuid}>
                   {msg.role === "user" ? (
-                    <UserConversation content={msg.content} />
+                    <UserConversation content={msg.content} created_at={msg.created_at} />
                   ) : (
-                    <BotConversation content={msg.content} onSaveWord={handleSaveWord} />
+                    <BotConversation content={msg.content} created_at={msg.created_at} onSaveWord={handleSaveWord} />
                   )}
                 </Fragment>
               ))}

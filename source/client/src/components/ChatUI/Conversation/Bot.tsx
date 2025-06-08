@@ -8,6 +8,7 @@ import ButtonSpeaker from "../../ButtonSpeaker";
 
 interface BotConversationProps {
   content: string;
+  created_at?: string;
   onSaveWord: (word: string, meaning: string) => void;
 }
 
@@ -24,7 +25,7 @@ function useOutsideAlerter(
   }, [ref, cb]);
 }
 
-const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }) => {
+const BotConversation: React.FC<BotConversationProps> = ({ content, created_at, onSaveWord }) => {
   /* ------------------------------ STATE ------------------------------ */
   const [selectedText, setSelectedText] = useState<string>("");
   const [translation, setTranslation] = useState<string>("");
@@ -32,6 +33,16 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
 
   const popupRef = useRef<HTMLDivElement>(null);
+
+  const formatTime = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  };
 
   /* -------------------------- SELECTION / TRANSLATE ------------------------- */
   const handleMouseUp = async (e: React.MouseEvent<HTMLDivElement>) => {
@@ -145,6 +156,7 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
       )}
 
       <div className="botFunction">
+        <span className="message-time">{formatTime(created_at)}</span>
         <ButtonSpeaker text={content} />
         <ButtonTranslate text={content} />
       </div>
