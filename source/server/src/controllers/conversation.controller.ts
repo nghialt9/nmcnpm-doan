@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import * as ConversationService from '../services/conversation.service';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
+import { ConversationLog } from '../types/entities';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const getConversations = async (req: Request, res: Response) => {
   try {
     const history_uuid = req.params.history_uuid;
-    const data = await ConversationService.fetchConversations(history_uuid);
+    const data: ConversationLog[] = await ConversationService.fetchConversations(history_uuid);
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Internal server error' });
@@ -16,7 +17,7 @@ export const getConversations = async (req: Request, res: Response) => {
 
 export const saveConversation = async (req: Request, res: Response) => {
   try {
-    const log = {
+    const log: ConversationLog = {
       uuid: uuidv4(),
       number_sentence: req.body.number_sentence,
       sentences: req.body.sentences,
@@ -45,7 +46,7 @@ export const saveConversation = async (req: Request, res: Response) => {
       suggestions = [];
     }
     // Save bot reply
-    const botLog = {
+    const botLog: ConversationLog = {
       uuid: uuidv4(),
       number_sentence: log.number_sentence,
       sentences: aiAnswer,
