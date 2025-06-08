@@ -27,6 +27,7 @@ export interface ChatResponse {
   error?: string;
   translatedText?: string;
   data?: any;
+  suggestions?: string[];
 }
 
 export interface ConversationResponse {

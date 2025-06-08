@@ -593,3 +593,25 @@
   line-height: 1.4;
   color: #555555;
 }
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.suggestion-button {
+  padding: 8px 12px;
+  background-color: #e0f7fa;
+  border: 1px solid #007bff;
+  border-radius: 20px;
+  color: #007bff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.suggestion-button:hover {
+  background-color: #b2ebf2;
+}

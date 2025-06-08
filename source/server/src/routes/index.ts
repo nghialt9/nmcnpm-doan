@@ -287,6 +287,7 @@ router.get("/history/:user_uuid", async (req, res) => {
 });
 
 // save conversation
+// save conversation and return answer + suggestions
 router.post("/conversation/save", async (req, res) => {
   try {
     const log = {
@@ -298,6 +299,7 @@ router.post("/conversation/save", async (req, res) => {
       role: "user",
     };
 
+    // Save user message
     await connection.query(
       `INSERT INTO logs (uuid, number_sentence, sentences, history_uuid, created_at, item_role) VALUES (?, ?, ?, ?, ?, ?)`,
       [
@@ -310,19 +312,44 @@ router.post("/conversation/save", async (req, res) => {
       ]
     );
 
+    // Request OpenAI with JSON response instruction
+    const prompt = `Answer the question below, and then return 3 follow-up question suggestions to continue the conversation.
+Format your response as a JSON object with two fields: "answer" and "suggestions".
+
+Example:
+{
+  "answer": "Sure, here is the explanation...",
+  "suggestions": ["Can you give me an example?", "How does this apply in real life?", "What are the benefits?"]
+}
+
+Question: ${log.sentences}`;
+
     const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: log.sentences }],
       model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const openaimessage = chatCompletion.choices[0].message.content;
+    const aiRawResponse = chatCompletion.choices[0].message.content || "";
+    let aiAnswer = "";
+    let suggestions: string[] = [];
 
+    try {
+      const parsed = JSON.parse(aiRawResponse);
+      aiAnswer = parsed.answer || "";
+      suggestions = parsed.suggestions || [];
+    } catch (err) {
+      console.error("Failed to parse AI JSON:", err);
+      aiAnswer = aiRawResponse; // fallback to raw message
+      suggestions = [];
+    }
+
+    // Save bot reply
     await connection.query(
       `INSERT INTO logs (uuid, number_sentence, sentences, history_uuid, created_at, item_role) VALUES (?, ?, ?, ?, ?, ?)`,
       [
         uuidv4(),
         log.number_sentence,
-        openaimessage,
+        aiAnswer,
         log.history_uuid,
         new Date(),
         "system",
@@ -331,8 +358,9 @@ router.post("/conversation/save", async (req, res) => {
 
     res.json({
       success: true,
-      message: openaimessage,
-      userMessage: log
+      message: aiAnswer,
+      suggestions,
+      userMessage: log,
     });
   } catch (error: any) {
     console.error("conversation/save", error);
@@ -342,6 +370,7 @@ router.post("/conversation/save", async (req, res) => {
     });
   }
 });
+
 
 //get log by history_uuid
 router.get("/conversation/:history_uuid", async (req, res) => {

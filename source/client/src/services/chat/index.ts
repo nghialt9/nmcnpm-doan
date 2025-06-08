@@ -141,7 +141,8 @@ export const sendConversation = async (conversation: SubmitConversation): Promis
     const response = await apiCaller(`${BASE_URL}/conversation/save`, "POST", conversation);
     return {
       success: true,
-      message: response.message
+      message: response.message,
+      suggestions: response.suggestions || [], 
     };
   } catch (error) {
     console.error("Error sendConversation:", error);

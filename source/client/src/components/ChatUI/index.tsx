@@ -18,6 +18,7 @@ import { speechToText } from "../../services/openapi";
 import UserConversation from "./Conversation/User";
 import BotConversation from "./Conversation/Bot";
 
+
 import "./chatui.css";
 import Header from "../Header";
 
@@ -47,7 +48,7 @@ const Chat: React.FC = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
-
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   /* ----------------------------- REFS & EFFECTS ---------------------------- */
   const inputRef = useRef<HTMLInputElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -149,47 +150,55 @@ const Chat: React.FC = () => {
     }
   };
 
-  const _handleSendText = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = inputRef.current?.value.trim() || "";
-    if (!text) return;
-    if (!activeHistory.history_uuid) {
-      setChatError("Hãy tạo hoặc chọn History trước!");
-      return;
-    }
-    setChatError(null);
-
-    const userMsg: ChatMessage = {
-      uuid: uuidv4(),
-      sender: "user",
-      content: text,
-      role: "user",
+      const _handleSendText = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const text = inputRef.current?.value.trim() || "";
+      if (!text) return;
+      if (inputRef.current) inputRef.current.value = "";
+      await _handleSendTextContent(text);
     };
-    setConversation((prev) => [...prev, userMsg]);
-    if (inputRef.current) inputRef.current.value = "";
 
-    try {
-      setIsLoading(true);
-      const res = await sendConversation({
-        number_sentence: "1",
-        sentences: text,
-        history_uuid: activeHistory.history_uuid,
-      });
-      if (res.success && res.message) {
-        const botMsg: ChatMessage = {
-          uuid: uuidv4(),
-          sender: "system",
-          content: res.message,
-          role: "system",
-        };
-        setConversation((prev) => [...prev, botMsg]);
+      const _handleSendTextContent = async (text: string) => {
+      if (!text.trim()) return;
+      if (!activeHistory.history_uuid) {
+        setChatError("Hãy tạo hoặc chọn History trước!");
+        return;
       }
-    } catch (err) {
-      console.error("sendText", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      setChatError(null);
+
+      const userMsg: ChatMessage = {
+        uuid: uuidv4(),
+        sender: "user",
+        content: text,
+        role: "user",
+      };
+      setConversation((prev) => [...prev, userMsg]);
+
+      try {
+        setIsLoading(true);
+        const res = await sendConversation({
+          number_sentence: "1",
+          sentences: text,
+          history_uuid: activeHistory.history_uuid,
+        });
+
+        if (res.success && res.message) {
+          const botMsg: ChatMessage = {
+            uuid: uuidv4(),
+            sender: "system",
+            content: res.message,
+            role: "system",
+          };
+          setConversation((prev) => [...prev, botMsg]);
+          setSuggestions(res.suggestions || []);
+        }
+      } catch (err) {
+        console.error("sendText", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
   useEffect(() => {
     if (state.user?.uuid) {
       getSavedWordsForUser(state.user.uuid).then(res => {
@@ -304,6 +313,22 @@ const Chat: React.FC = () => {
                 </Fragment>
               ))}
             </div>
+              {suggestions.length > 0 && (
+              <div className="suggestions">
+                {suggestions.map((s, idx) => (
+                  <button
+                    key={idx}
+                    className="suggestion-button"
+                    onClick={() => {
+                    if (inputRef.current) inputRef.current.value = s;
+                    _handleSendTextContent(s);
+                  }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="chatFooter">
               <div className="inp">

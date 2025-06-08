@@ -35,29 +35,37 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }
 
   /* -------------------------- SELECTION / TRANSLATE ------------------------- */
   const handleMouseUp = async (e: React.MouseEvent<HTMLDivElement>) => {
-    // Đừng reset nếu click bên trong popup
-    if (popupRef.current && popupRef.current.contains(e.target as Node)) return;
+  if (popupRef.current && popupRef.current.contains(e.target as Node)) return;
 
-    const sel = window.getSelection();
-    const text = sel ? sel.toString().trim() : "";
-    if (!text) return;
+  const sel = window.getSelection();
+  const text = sel ? sel.toString().trim() : "";
+  if (!text || !sel) return;
 
-    const range = sel!.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    setPopupPos({ top: rect.top + window.scrollY, left: rect.left });
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
 
-    setSelectedText(text);
-    setIsTranslating(true);
-    try {
-      const res = await translate(text);
-      setTranslation(res.success ? res.translatedText || "" : "");
-    } catch (err) {
-      console.error("translate fail", err);
-      setTranslation("");
-    } finally {
-      setIsTranslating(false);
-    }
-  };
+  // ✅ Lấy phần tử chứa vùng chat cuộn ngang/dọc
+  const chatsEl = document.querySelector(".chats");
+  const scrollTop = chatsEl?.scrollTop || 0;
+
+  setPopupPos({
+    top: rect.bottom + scrollTop + 8,
+    left: rect.left + window.scrollX,
+  });
+
+  setSelectedText(text);
+  setIsTranslating(true);
+  try {
+    const res = await translate(text);
+    setTranslation(res.success ? res.translatedText || "" : "");
+  } catch (err) {
+    console.error("translate fail", err);
+    setTranslation("");
+  } finally {
+    setIsTranslating(false);
+  }
+};
+
 
   /* ------------------------------ ACTIONS ----------------------------- */
   const clearPopup = useCallback(() => {
