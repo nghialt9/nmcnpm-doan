@@ -11,7 +11,7 @@ config();
 // });
 
 export const connection = new Pool({
-  connectionString: 'postgresql://nmcnpm_19lf_user:Lq4yCCW4Zby5ct96VC3Mcvd4ugzMwz91@dpg-d135o8emcj7s7380be5g-a.render.com/nmcnpm_19lf',
+  connectionString: 'postgresql://nmcnpm_19lf_user:Lq4yCCW4Zby5ct96VC3Mcvd4ugzMwz91@dpg-d135o8emcj7s7380be5g-a.oregon-postgres.render.com/nmcnpm_19lf',
   ssl: {
     rejectUnauthorized: false,
   },
