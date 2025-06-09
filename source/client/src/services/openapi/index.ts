@@ -63,12 +63,12 @@ export const speechToText = async (audioBlob: Blob): Promise<string | null> => {
       })(),
       {
         headers: {
-          Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`, // Use environment variable
+          Authorization: `Bearer ${apiKey}`, // Use environment variable
         },
       }
     );
     
-    console.log("  Request headers:", { Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY ? '...' : '[API Key Missing]'}` });
+    console.log("  Request headers:", { Authorization: `Bearer ${apiKey ? '...' : '[API Key Missing]'}` });
     
     console.log("OpenAI API Response:", response);
 
