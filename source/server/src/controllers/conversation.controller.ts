@@ -3,7 +3,7 @@ import * as ConversationService from '../services/conversation.service';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
 import { ConversationLog } from '../types/entities';
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: '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' });
 
 export const getConversations = async (req: Request, res: Response) => {
   try {
