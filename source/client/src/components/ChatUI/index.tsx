@@ -280,7 +280,11 @@ const Chat: React.FC = () => {
                 <ListGroupItem
                   key={w.text}
                   active={selectedSavedWord?.text === w.text}
-                  onClick={() => setSelectedSavedWord(w)}
+                  onClick={() => {
+                    setSelectedSavedWord(w);
+                    // Clear selectedSavedWord after 3 seconds
+                    setTimeout(() => setSelectedSavedWord(null), 3000);
+                  }}
                   className="detailList"
                 >
                   {w.text}
@@ -323,9 +327,8 @@ const Chat: React.FC = () => {
                     key={idx}
                     className="suggestion-button"
                     onClick={() => {
-                    if (inputRef.current) inputRef.current.value = s;
-                    _handleSendTextContent(s);
-                  }}
+                      _handleSendTextContent(s);
+                    }}
                   >
                     {s}
                   </button>

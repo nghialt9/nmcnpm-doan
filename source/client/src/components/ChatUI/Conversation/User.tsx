@@ -44,9 +44,9 @@ const UserConversation: React.FC<UserConversationProps> = ({ content, created_at
 
   return (
     <div className={`chat user`} onMouseUp={handleMouseUp}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: 'block', alignItems: 'center' }}>
         <IoPersonSharp size={30} />
-        {state.user?.username && <span className="user-label" style={{ marginLeft: '5px' }}>{state.user.username}</span>}
+        {state.user?.username && <span className="user-label">{state.user.username}</span>}
       </div>
       <div className="message-container">
         <p className="txt">{content}</p>

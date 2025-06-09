@@ -1,9 +1,9 @@
 .App {
-  height: 90vh;  
+  height: 90vh;
   display: flex;
   color: #ffffff;
   background: linear-gradient(to right top, #1a2a3a, #2a3a4a, #3a4a5a);
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .sidebar {
@@ -14,7 +14,7 @@
   padding: 10px 0;
   border-radius: 10px;
   margin: 0;
-  
+
   color: #333;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   margin-right: 10px;
@@ -67,7 +67,7 @@
   align-items: center;
   gap: 10px;
   padding: 5px 10px;
-  background-color:#a8cff4;
+  background-color: #a8cff4;
   border-radius: 25px;
 }
 
@@ -110,18 +110,20 @@
 }
 
 .detailList:hover {
-    background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .detailList.active {
-    background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.1);
 }
+
 list-group-item.active {
   border-color: white;
 }
+
 .detailList .history-date {
-    flex-grow: 1;
-    font-size: 1rem;
+  flex-grow: 1;
+  font-size: 1rem;
 }
 
 .chatting {
@@ -191,12 +193,15 @@ list-group-item.active {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   background: white;
 }
+
 div::-webkit-scrollbar {
   width: 0.5rem;
 }
+
 ::-webkit-scrollbar {
   width: 3px;
 }
+
 .user {
   background: none;
   margin-left: auto;
@@ -205,12 +210,13 @@ div::-webkit-scrollbar {
 }
 
 .user .txt {
-    background: #a8cff4;
-    margin-left: 0;
-    margin-right: 5px;
-    border-radius: 15px 15px 0 15px;
-    margin-bottom: 0;
+  background: #a8cff4;
+  margin-left: 0;
+  margin-right: 5px;
+  border-radius: 15px 15px 0 15px;
+  margin-bottom: 0;
 }
+
 .bott {
   position: relative;
   margin-bottom: 2.5rem;
@@ -222,8 +228,8 @@ div::-webkit-scrollbar {
 
 .bott .botFunction {
   position: absolute;
-  bottom: -2.5rem;
-  left: 4rem;
+  bottom: -2rem;
+  left: 2rem;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -249,6 +255,7 @@ div::-webkit-scrollbar {
   background: #f1f1f4;
   transform: translateY(-1px);
 }
+
 .bott .botFunction button:active {
   transform: translateY(0);
 }
@@ -263,10 +270,10 @@ div::-webkit-scrollbar {
   margin-top: 10px;
   width: 100%;
   display: flex;
-  justify-content: center;   
-  padding: 0;               
-  background: transparent;  
-  box-shadow: none;     
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .inp {
@@ -288,7 +295,7 @@ div::-webkit-scrollbar {
   border-color: #007bff;
 }
 
-.inp > input {
+.inp>input {
   flex-grow: 1;
   outline: none;
   padding: 12px 15px;
@@ -299,12 +306,13 @@ div::-webkit-scrollbar {
   transition: all 0.3s ease;
 }
 
-.inp > input::placeholder {
+.inp>input::placeholder {
   color: rgba(0, 0, 0, 0.5);
   font-style: italic;
 }
 
-.send, .micro {
+.send,
+.micro {
   padding: 8px;
   color: #ffffff;
   font-size: 1.5rem;
@@ -319,21 +327,24 @@ div::-webkit-scrollbar {
   height: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-left: 8px; 
+  margin-left: 8px;
   margin-right: 10px;
 }
 
 .send {
-  margin-left: 0; /* nút đầu tiên không bị đẩy sang phải */
+  margin-left: 0;
+  /* nút đầu tiên không bị đẩy sang phải */
 }
 
-.send:hover, .micro:hover {
+.send:hover,
+.micro:hover {
   color: #ffffff;
   background: #0056b3;
   transform: scale(1.05);
 }
 
-.send:active, .micro:active {
+.send:active,
+.micro:active {
   transform: scale(0.95);
 }
 
@@ -346,9 +357,11 @@ div::-webkit-scrollbar {
   0% {
     box-shadow: 0 0 5px #007bff, 0 0 10px #007bff, 0 0 15px #007bff;
   }
+
   50% {
     box-shadow: 0 0 10px #007bff, 0 0 15px #007bff, 0 0 20px #007bff;
   }
+
   100% {
     box-shadow: 0 0 5px #007bff, 0 0 10px #007bff, 0 0 15px #007bff;
   }
@@ -383,47 +396,47 @@ div::-webkit-scrollbar {
 
 /* Added style for chat error message */
 .error-message {
-    color: #dc3545;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    padding: 10px;
-    margin-top: 15px;
-    font-size: 14px;
-    text-align: center;
-    border-radius: 5px;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  margin-top: 15px;
+  font-size: 14px;
+  text-align: center;
+  border-radius: 5px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .chat-error-message {
-    color: red;
-    text-align: center;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ffc107;
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ffc107;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
 }
 
 .chat .user-label,
 .chat .bot-label {
-    font-weight: bold;
-    margin-right: 5px;
-    color: #555;
-    font-size: 1rem;
-    margin-bottom: 2px;
-    display: block;
-    width: 100%;
-    text-align: left;
+  margin-top: -5px;
+  font-weight: bold;
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 2px;
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 
 .user .user-label {
-    text-align: right;
+  text-align: right;
 }
 
 .translation-popup {
-  position: fixed;                
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -431,7 +444,7 @@ div::-webkit-scrollbar {
   max-width: 400px;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 10000;
   animation: popupFadeIn 0.3s ease;
 }
@@ -530,6 +543,7 @@ div::-webkit-scrollbar {
     opacity: 0;
     transform: translate(-50%, -48%);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, -50%);
@@ -537,7 +551,7 @@ div::-webkit-scrollbar {
 }
 
 .savedwords-section .detailList.active {
-  background: rgba(0, 123, 255, 0.2); 
+  background: rgba(0, 123, 255, 0.2);
 }
 
 
@@ -566,7 +580,7 @@ div::-webkit-scrollbar {
 
 .save-btn:hover {
   background: #218838;
-} 
+}
 
 .speak-btn {
   background: #007bff;
@@ -576,17 +590,21 @@ div::-webkit-scrollbar {
 .speak-btn:hover {
   background: #0056b3;
 }
+
 /* ---------- Saved-Words layout ---------- */
 .savedwords-section {
-  flex: 1;                     /* cho phép chiếm hết chiều cao còn lại */
+  flex: 1;
+  /* cho phép chiếm hết chiều cao còn lại */
   display: flex;
   flex-direction: column;
   padding: 1rem 0;
 }
 
 .savedWordsList {
-  flex: 1;                     /* danh sách cao tối đa */
-  overflow-y: auto;            /* cuộn khi nhiều từ */
+  flex: 1;
+  /* danh sách cao tối đa */
+  overflow-y: auto;
+  /* cuộn khi nhiều từ */
 }
 
 .saved-word-display {
@@ -594,7 +612,8 @@ div::-webkit-scrollbar {
   border: 1px solid #cccccc;
   border-radius: 8px;
   padding: 12px 16px;
-  margin: 10px 20px; /* cách đều hai bên và cách phần chat bên dưới */
+  margin: 10px 20px;
+  /* cách đều hai bên và cách phần chat bên dưới */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   color: #333333;
 }
@@ -611,6 +630,7 @@ div::-webkit-scrollbar {
   line-height: 1.4;
   color: #555555;
 }
+
 .suggestions {
   display: flex;
   flex-wrap: wrap;

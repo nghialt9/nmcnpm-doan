@@ -111,9 +111,9 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, created_at, 
   /* ------------------------------- RENDER ------------------------------ */
   return (
     <div className="chat bott" onMouseUp={handleMouseUp}>
-      <div style={{ display: "flex", alignItems: "center", minWidth: 65 }}>
+      <div style={{ display: "block", alignItems: "center", minWidth: 25 }}>
         <RiRobot2Fill size={30} />
-        <span className="bot-label" style={{ marginLeft: 5 }}>Bot</span>
+        <span className="bot-label">Bot</span>
       </div>
       <p className="txt">{content}</p>
 
