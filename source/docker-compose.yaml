@@ -21,7 +21,7 @@ services:
       timeout: 10s
       retries: 10
     # networks:
-    #   - doantkpm
+
   server:
     build: ./server # Path to your server folder with Dockerfile
     ports:
@@ -30,7 +30,7 @@ services:
       mysql: # Ensure MySQL starts before the server container
         condition: service_healthy
     # networks:
-    #   - doantkpm
+
     environment:
       MYSQL_HOST: "mysql" # Set a strong password for MySQL root user
       MYSQL_ROOT_PASSWORD: "password"
@@ -42,7 +42,7 @@ services:
     environment:
       NODE_OPTIONS: "--openssl-legacy-provider"
     # networks:
-    #   - doantkpm
+
 networks:
   doantkpm:
     external: true

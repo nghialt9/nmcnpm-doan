@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaMicrophone, FaRegCommentDots, FaVolumeUp } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
-
 import {
   sendConversation,
   textToSpeechFromServer,
@@ -10,6 +9,34 @@ import {
 import { speechToText } from "../../../services/openapi";
 import { Message as ChatMessage } from "../../../types/Chat";
 
+// Các component con cho từng trạng thái, giúp code sạch sẽ hơn
+const MicVisualizer = () => (
+  <div className="status-visualizer">
+    <div className="mic-icon-container">
+      <FaMicrophone size={24} color="white" />
+    </div>
+    <div className="mic-visualizer-bars">
+      {/* 20 thanh sóng âm */}
+      {Array.from({ length: 20 }).map((_, i) => (
+        <div key={i} className="mic-bar" />
+      ))}
+    </div>
+  </div>
+);
+
+const ThinkingIndicator = () => (
+  <div className="status-visualizer thinking-indicator">
+    <FaRegCommentDots size={32} color="white" />
+    <span>Thinking...</span>
+  </div>
+);
+
+const SpeakingIndicator = () => (
+  <div className="status-visualizer speaking-indicator">
+    <FaVolumeUp size={32} color="white" />
+    <span>Replying...</span>
+  </div>
+);
 
 // SỬA LỖI: Loại bỏ trạng thái 'PROCESSING' gây rắc rối
 type ConversationStatus = "IDLE" | "LISTENING" | "TRANSCRIBING" | "SPEAKING";
@@ -31,7 +58,17 @@ const ConversationView: React.FC<ConversationViewProps> = ({ activeHistory, onEx
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameId = useRef<number | null>(null);
   const currentBotAudioRef = useRef<HTMLAudioElement | null>(null);
-
+  const transcriptContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (transcriptContainerRef.current) {
+      const element = transcriptContainerRef.current;
+      // Sử dụng `scrollTo` với `behavior: 'smooth'` để cuộn mượt mà
+      element.scrollTo({
+        top: element.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [transcript]); 
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
@@ -260,20 +297,36 @@ const ConversationView: React.FC<ConversationViewProps> = ({ activeHistory, onEx
   }
 
   return (
-    <div className="conversation-overlay">
-      <button className="exit-btn" onClick={onExit}> <FaTimes size={24} /> </button>
-      <div className="transcript-container">
-        {transcript.map((msg) => (
-          <p key={msg.uuid} className={`transcript-line ${msg.role === "user" ? "user-text" : "bot-text"}`}>
-            <span className="transcript-role">{msg.role === 'user' ? 'You' : 'Bot'}:</span>
-            {msg.content}
-          </p>
-        ))}
+    <div className="cv-overlay">
+      <button
+        className="cv-exit-btn"
+        onClick={onExit}
+        title="Exit conversation"
+        aria-label="Exit conversation"
+      >
+        <FaTimes size={24} />
+      </button>
+      <div className="cv-transcript-container" ref={transcriptContainerRef}>
+          {transcript.map((msg) => (
+          <div key={msg.uuid} className={`cv-transcript-line ${msg.role === 'user' ? 'cv-user' : 'cv-bot'}`}>
+           
+              <p className="cv-txt">
+                
+                  <span className="cv-role-label">{msg.role === 'user' ? 'You' : 'Bot'}</span>
+                 
+                  {msg.content}
+              </p>
+          </div>
+          ))}
       </div>
-      <div className="status-footer">
-        {error && <div className="error-text">{error}</div>}
-        <div className={`status-indicator ${status.toLowerCase()}`}>{getStatusText()}</div>
+      <div className="cv-status-footer">
+        {error && <div className="cv-error-text">{error}</div>}
+        {status === "LISTENING" && <MicVisualizer />}
+        {status === "TRANSCRIBING" && <ThinkingIndicator />}
+        {status === "SPEAKING" && <SpeakingIndicator />}
+        {status === "IDLE" && <span>Initializing...</span>}
       </div>
+
     </div>
   );
 };

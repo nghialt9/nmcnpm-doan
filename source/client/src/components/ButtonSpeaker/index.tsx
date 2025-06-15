@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaVolumeUp, FaSpinner } from "react-icons/fa";
-import { textToSpeechFromServer } from "../../services/chat"; // Đảm bảo import service
+import { textToSpeechFromServer } from "../../services/chat"; 
 import "./index.css";
 
 const ButtonSpeaker = ({ text }: { text: string }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Hàm dọn dẹp để dừng và giải phóng audio
   const cleanupAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      // Revoke the object URL to prevent memory leaks
+
       if (audioRef.current.src.startsWith('blob:')) {
         URL.revokeObjectURL(audioRef.current.src);
       }

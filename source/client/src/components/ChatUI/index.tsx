@@ -154,77 +154,115 @@ const Chat: React.FC = () => {
     }
   };
 
-  const _handleSendTextContent = async (text: string) => {
+const _updateHistoryTitleIfNeeded = async (history_uuid: string, firstUserMessageContent: string) => {
+    const historyToUpdate = histories.find(h => h.history_uuid === history_uuid);
+
+    if (historyToUpdate && historyToUpdate.title === "New Conversation...") {
+        const newTitle = firstUserMessageContent.length > 35 
+            ? firstUserMessageContent.substring(0, 32) + '...' 
+            : firstUserMessageContent;
+
+        setHistories(prev => prev.map(h => 
+            h.history_uuid === history_uuid ? { ...h, title: newTitle } : h
+        ));
+
+        if (activeHistory.history_uuid === history_uuid) {
+            setActiveHistory(prev => ({ ...prev, title: newTitle }));
+        }
+        console.log(`History title for ${history_uuid} updated to: "${newTitle}"`);
+    }
+};
+
+
+const _handleSendTextContent = async (text: string) => {
     const userMsg: ChatMessage = { uuid: uuidv4(), sender: "user", content: text, role: "user" };
     setConversation((prev) => [...prev, userMsg]);
     setSuggestions([]);
 
-    let isNewChat = false;
     let historyToUse = activeHistoryUuidRef.current;
 
     try {
-      if (!historyToUse) {
-        isNewChat = true;
-        const res = await saveHistories({ user_uuid: state.user?.uuid });
-        if (res.success && res.data) {
-          const newHistory: ChatHistory = {
-            history_uuid: res.data.uuid,
-            createdAt: res.data.created_at,
-            title: "New Conversation..."
-          };
-          setHistories((prev) => [newHistory, ...prev]);
-          setActiveHistory(newHistory);
-          historyToUse = newHistory.history_uuid;
-        } else {
-          setChatError(res.error || "Không thể bắt đầu cuộc trò chuyện mới.");
-          setConversation(prev => prev.slice(0, prev.length - 1));
-          return;
+        if (!historyToUse) {
+            const res = await saveHistories({ user_uuid: state.user?.uuid });
+            if (res.success && res.data) {
+                const newHistory: ChatHistory = {
+                    history_uuid: res.data.uuid,
+                    createdAt: res.data.created_at,
+                    title: "New Conversation..." 
+                };
+                setHistories((prev) => [newHistory, ...prev]);
+                setActiveHistory(newHistory);
+                historyToUse = newHistory.history_uuid;
+            } else {
+                setChatError(res.error || "Không thể bắt đầu cuộc trò chuyện mới.");
+                setConversation(prev => prev.slice(0, prev.length - 1));
+                return;
+            }
         }
-      }
 
-      const res = await sendConversation({ number_sentence: "1", sentences: text, history_uuid: historyToUse });
+        if (historyToUse) {
+            await _updateHistoryTitleIfNeeded(historyToUse, text);
+        }
+        
+        const res = await sendConversation({ number_sentence: "1", sentences: text, history_uuid: historyToUse });
 
-      const botMsg: ChatMessage = {
-        uuid: uuidv4(),
-        sender: "system",
-        content: res.success ? (res.message ?? "No response message.") : "Sorry, I encountered an error.",
-        role: "system",
-      };
-      setConversation((prev) => [...prev, botMsg]);
+        const botMsg: ChatMessage = {
+            uuid: uuidv4(),
+            sender: "system",
+            content: res.success ? (res.message ?? "No response message.") : "Sorry, I encountered an error.",
+            role: "system",
+        };
+        setConversation((prev) => [...prev, botMsg]);
 
-      if (isNewChat && historyToUse) {
-        const newTitle = text.length > 35 ? text.substring(0, 32) + '...' : text;
-        setHistories(prev => prev.map(h => 
-            h.history_uuid === historyToUse ? { ...h, title: newTitle } : h
-        ));
-        setActiveHistory(prev => ({ ...prev, title: newTitle }));
-      }
 
-      if (res.success && botMsg.content) {
-        await speakText(botMsg.content);
-      }
-      if (res.success) setSuggestions(res.suggestions || []);
+
+        if (res.success && botMsg.content) {
+            await speakText(botMsg.content);
+        }
+        if (res.success) setSuggestions(res.suggestions || []);
 
     } catch (err) {
-      console.error("Error sending conversation:", err);
-      setChatError("Lỗi kết nối, không thể gửi tin nhắn.");
-      setConversation(prev => prev.slice(0, prev.length - 1));
+        console.error("Error sending conversation:", err);
+        setChatError("Lỗi kết nối, không thể gửi tin nhắn.");
+        setConversation(prev => prev.slice(0, prev.length - 1));
     }
-  };
+};
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => { setInputText(e.target.value); };
   const handleVoiceModeClick = () => { hideSavedWordDisplay(); if (!activeHistory.history_uuid) { setChatError("Vui lòng bắt đầu một cuộc hội thoại mới trước."); return; } setMode("CONVERSATION_FULLSCREEN"); };
   const _handleSendFromInput = async () => { hideSavedWordDisplay(); if (!inputText.trim()) return; const textToSend = inputText; setInputText(""); await _handleSendTextContent(textToSend); };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); _handleSendFromInput(); } };
   
-  const handleCreateNewChatClick = () => {
-    setActiveHistory({});
-    setConversation([]);
-    setInputText("");
-    setSuggestions([]);
-    setSelectedSavedWord(null);
-    setChatError(null);
-  };
+// Code mới - Sửa trong Chat.tsx
+
+const handleCreateNewChatClick = async () => {
+  hideSavedWordDisplay(); // Thêm dòng này để ẩn từ đã lưu nếu có
+  setChatError(null);
+  setInputText("");
+  setSuggestions([]);
+
+  try {
+    const res = await saveHistories({ user_uuid: state.user?.uuid });
+
+    if (res.success && res.data) {
+      const newHistory: ChatHistory = {
+        history_uuid: res.data.uuid,
+        createdAt: res.data.created_at,
+        title: "New Conversation...", 
+      };
+      setHistories((prev) => [newHistory, ...prev]);
+      setActiveHistory(newHistory);
+      setConversation([]); 
+
+      console.log("New chat created successfully:", newHistory.history_uuid);
+    } else {
+      setChatError(res.error || "Không thể bắt đầu cuộc trò chuyện mới.");
+    }
+  } catch (err) {
+    console.error("Failed to create new chat:", err);
+    setChatError("Lỗi kết nối khi tạo cuộc trò chuyện mới.");
+  }
+};
 
   const _handleFetchSavedWords = async (user_uuid: string) => {
     try {
@@ -371,7 +409,7 @@ const Chat: React.FC = () => {
               {conversation.map((msg) => (
                 <Fragment key={msg.uuid}>
                   {msg.role === "user" ? (
-                    <UserConversation content={msg.content} />
+                    <UserConversation content={msg.content} onSaveWord={handleSaveWord} />
                   ) : (
                     <BotConversation content={msg.content} onSaveWord={handleSaveWord} />
                   )}

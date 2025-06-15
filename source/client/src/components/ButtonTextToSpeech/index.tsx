@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 
 interface SoundRecorderProps {
-  onRecordingComplete?: (blob: Blob) => void; // Optional callback for recorded audio
+  onRecordingComplete?: (blob: Blob) => void; 
 }
 
 const SoundRecorder: React.FC<SoundRecorderProps> = ({
@@ -12,7 +12,7 @@ const SoundRecorder: React.FC<SoundRecorderProps> = ({
   const animationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Simulate visual feedback during recording (optional)
+
     if (animationRef.current) {
       animationRef.current.classList.toggle("animate");
     }
