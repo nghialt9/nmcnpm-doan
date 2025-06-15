@@ -1,62 +1,89 @@
-.pointer {
-  display: flex;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #f49d16;
+/* --- Style cho ButtonSpeaker --- */
+
+/* Style cơ bản cho nút bấm */
+.speaker {
+  background-color: transparent;
+  border: none;
   cursor: pointer;
-  box-shadow: 0 0 0 rgb(244, 157, 22);
-  animation: pulse 2s infinite;
+  padding: 0; /* Reset padding */
+  
+  /* Sử dụng Flexbox để căn giữa icon một cách hoàn hảo */
+  display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-}
-.pointer span {
-  color: #fff;
-  text-align: center;
-  display: block;
-  width: 31px;
-  padding: 5px 0px;
-}
-.text {
-  -webkit-transform: scaleY(1);
-  -ms-transform: scaleY(1);
-  transform: scaleY(1);
-  -webkit-transform-origin: bottom;
-  -ms-transform-origin: bottom;
-  transform-origin: bottom;
-  transition: -webkit-transform 150ms ease 150ms;
-  transition: transform 150ms ease 150ms;
-  transition: transform 150ms ease 150ms, -webkit-transform 150ms ease 150ms;
-}
-.note.open .text {
-  -webkit-transform: scaleY(1);
-  -ms-transform: scaleY(1);
-  transform: scaleY(1);
+  
+  /* Kích thước và bo tròn */
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  
+  /* Hiệu ứng chuyển động mượt mà */
+  transition: background-color 0.2s ease-in-out;
 }
 
-@-webkit-keyframes pulse {
+/* Style khi người dùng hover chuột vào nút */
+.speaker:hover:not(:disabled) {
+  background-color: rgba(72, 111, 114, 0.1); /* Màu cadetblue với độ mờ */
+}
+
+.speaker:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Style đặc biệt khi nút đang ở trạng thái phát ('playing').
+  Hiệu ứng pulse sẽ được áp dụng tại đây.
+*/
+.speaker.playing {
+  background-color: #fce4ec; /* Một màu nền nhẹ để báo hiệu trạng thái active */
+  box-shadow: 0 0 0 rgba(233, 30, 99, 0.7); /* Màu hồng cho hiệu ứng pulse */
+  animation: pulse-pink 1.5s infinite;
+}
+
+/* Style cho icon quay tròn (spinner) khi đang loading/playing.
+  Class này có thể được thêm vào icon trong file .tsx
+*/
+.spin-animation {
+  animation: spin 1s linear infinite;
+}
+
+
+/* --- Định nghĩa Keyframes --- */
+
+/* Keyframe cho hiệu ứng pulse (tỏa sáng) */
+@keyframes pulse-pink {
   0% {
-    -webkit-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0.4);
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
   }
   70% {
-    -webkit-box-shadow: 0 0 0 10px rgba(244, 157, 22, 0);
+    box-shadow: 0 0 0 15px rgba(233, 30, 99, 0);
   }
   100% {
-    -webkit-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0);
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
   }
 }
-@keyframes pulse {
+
+/* Keyframe cho hiệu ứng quay tròn (spinner) */
+@keyframes spin {
   0% {
-    -moz-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0.4);
-    box-shadow: 0 0 0 0 rgba(244, 157, 22, 0.4);
-  }
-  70% {
-    -moz-box-shadow: 0 0 0 10px rgba(244, 157, 22, 0);
-    box-shadow: 0 0 0 10px rgba(244, 157, 22, 0);
+    transform: rotate(0deg);
   }
   100% {
-    -moz-box-shadow: 0 0 0 0 rgba(244, 157, 22, 0);
-    box-shadow: 0 0 0 0 rgba(244, 157, 22, 0);
+    transform: rotate(360deg);
   }
+}
+
+
+/* --- Các style cho component khác (dạng ghi chú/dropdown) --- */
+/* Đoạn CSS bên dưới có vẻ không liên quan trực tiếp đến nút Speaker. 
+  Bạn nên đặt nó vào file CSS của component tương ứng để dễ quản lý.
+*/
+.note .text {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 150ms ease-in-out;
+}
+
+.note.open .text {
+  transform: scaleY(1);
 }

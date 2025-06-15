@@ -1,14 +1,11 @@
-// File: client/src/components/ChatUI/Conversation/Bot.tsx
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import "../chatui.css";
 import { RiRobot2Fill } from "react-icons/ri";
-import { translate } from "../../../services/chat";
-import ButtonTranslate from "../../ButtonTranslate";
+import { translate, textToSpeechFromServer } from "../../../services/chat";
+import ButtonTranslate from "../../ButtonTranslate"; 
 import ButtonSpeaker from "../../ButtonSpeaker";
-
 interface BotConversationProps {
   content: string;
-  created_at?: string;
   onSaveWord: (word: string, meaning: string) => void;
 }
 
@@ -24,93 +21,137 @@ function useOutsideAlerter(
     return () => document.removeEventListener("mousedown", handle);
   }, [ref, cb]);
 }
-
-const BotConversation: React.FC<BotConversationProps> = ({ content, created_at, onSaveWord }) => {
-  /* ------------------------------ STATE ------------------------------ */
+const BotConversation: React.FC<BotConversationProps> = ({ content, onSaveWord }) => {
+  /* ------------------------------ STATE & REFS ------------------------------ */
   const [selectedText, setSelectedText] = useState<string>("");
   const [translation, setTranslation] = useState<string>("");
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isSpeakingPopup, setIsSpeakingPopup] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
 
   const popupRef = useRef<HTMLDivElement>(null);
+  const popupAudioRef = useRef<HTMLAudioElement | null>(null);
+  const botMessageRef = useRef<HTMLDivElement>(null); 
 
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
+
+  const showTranslationPopup = useCallback(async (textToTranslate: string, baseRect?: DOMRect) => {
+    if (!textToTranslate) return;
+
+   
+    const rect = baseRect || botMessageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const chatsEl = document.querySelector(".chats");
+    const scrollTop = chatsEl?.scrollTop || 0;
+
+    // Đặt vị trí cho popup
+    setPopupPos({
+      top: rect.bottom + scrollTop + 8,
+      left: rect.left + window.scrollX,
     });
+
+    // Bắt đầu dịch
+    setSelectedText(textToTranslate);
+    setIsTranslating(true);
+    try {
+      const res = await translate(textToTranslate);
+      setTranslation(res.success ? res.translatedText || "" : "Translation failed.");
+    } catch (err) {
+      console.error("translate fail", err);
+      setTranslation("Translation failed due to an error.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }, []);
+
+  /* -------------------------- HANDLERS ------------------------- */
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Không kích hoạt nếu đang click vào popup
+    if (popupRef.current && popupRef.current.contains(e.target as Node)) return;
+
+    const sel = window.getSelection();
+    const text = sel ? sel.toString().trim() : "";
+    if (!text || !sel) return;
+
+    // Lấy vị trí từ vùng văn bản được chọn
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    // Gọi hàm trung tâm với văn bản và vị trí đã chọn
+    showTranslationPopup(text, rect);
   };
 
-  /* -------------------------- SELECTION / TRANSLATE ------------------------- */
-  const handleMouseUp = async (e: React.MouseEvent<HTMLDivElement>) => {
-  if (popupRef.current && popupRef.current.contains(e.target as Node)) return;
 
-  const sel = window.getSelection();
-  const text = sel ? sel.toString().trim() : "";
-  if (!text || !sel) return;
-
-  const range = sel.getRangeAt(0);
-  const rect = range.getBoundingClientRect();
-
-  const chatsEl = document.querySelector(".chats");
-  const scrollTop = chatsEl?.scrollTop || 0;
-
-  setPopupPos({
-    top: rect.bottom + scrollTop + 8,
-    left: rect.left + window.scrollX,
-  });
-
-  setSelectedText(text);
-  setIsTranslating(true);
-  try {
-    const res = await translate(text);
-    setTranslation(res.success ? res.translatedText || "" : "");
-  } catch (err) {
-    console.error("translate fail", err);
-    setTranslation("");
-  } finally {
-    setIsTranslating(false);
-  }
-};
+  const handleTranslateAllClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    // Gọi hàm trung tâm với toàn bộ nội dung tin nhắn
+    showTranslationPopup(content);
+  };
 
 
-  /* ------------------------------ ACTIONS ----------------------------- */
+
+  const cleanupPopupAudio = useCallback(() => {
+    if (popupAudioRef.current) {
+      popupAudioRef.current.pause();
+      if (popupAudioRef.current.src.startsWith('blob:')) {
+        URL.revokeObjectURL(popupAudioRef.current.src);
+      }
+      popupAudioRef.current = null;
+    }
+    setIsSpeakingPopup(false);
+  }, []);
+
   const clearPopup = useCallback(() => {
+    cleanupPopupAudio();
     setSelectedText("");
     setTranslation("");
-  }, []);
+  }, [cleanupPopupAudio]);
 
   const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (selectedText && translation) {
-      console.log("SaveWord clicked", { selectedText, translation });
       onSaveWord(selectedText, translation);
       clearPopup();
     }
   };
 
-    const handleSpeak = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.preventDefault();
-  e.stopPropagation();
-  // Always speak the original English selection
-  if (!selectedText) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(selectedText);
-  utterance.lang = "en-US";
-  window.speechSynthesis.speak(utterance);
-};
+  const handleSpeak = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!selectedText || isSpeakingPopup) return;
 
-
-  /* click‑outside */
+    setIsSpeakingPopup(true);
+    try {
+      const audioUrl = await textToSpeechFromServer(selectedText);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        popupAudioRef.current = audio;
+        
+        audio.onended = () => cleanupPopupAudio();
+        audio.onerror = () => cleanupPopupAudio();
+        
+        await audio.play();
+      } else {
+        setIsSpeakingPopup(false);
+      }
+    } catch (error) {
+      console.error("Error handling popup speech:", error);
+      setIsSpeakingPopup(false);
+    }
+  };
+  
   useOutsideAlerter(popupRef, clearPopup);
+
+  useEffect(() => {
+    return () => cleanupPopupAudio();
+  }, [cleanupPopupAudio]);
 
   /* ------------------------------- RENDER ------------------------------ */
   return (
-    <div className="chat bott" onMouseUp={handleMouseUp}>
+    // Thêm ref vào div chính
+    <div className="chat bott" ref={botMessageRef} onMouseUp={handleMouseUp}>
       <div style={{ display: "flex", alignItems: "center", minWidth: 65 }}>
         <RiRobot2Fill size={30} />
         <span className="bot-label" style={{ marginLeft: 5 }}>Bot</span>
@@ -121,12 +162,13 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, created_at, 
         <div
           ref={popupRef}
           className="translation-popup"
+         
         >
+    
           <div className="translation-header">
             <h4>Translation</h4>
             <button className="close-btn" onClick={clearPopup}>✖</button>
           </div>
-
           <div className="translation-content">
             {isTranslating ? (
               <p>Loading…</p>
@@ -143,22 +185,20 @@ const BotConversation: React.FC<BotConversationProps> = ({ content, created_at, 
               </>
             )}
           </div>
-
           <div className="popup-actions">
             <button type="button" className="save-btn" onClick={handleSave} disabled={isTranslating || !translation}>
               Save Word
             </button>
-            <button type="button" className="speak-btn" onClick={handleSpeak} disabled={!selectedText}>
-              Speak
+            <button type="button" className="speak-btn" onClick={handleSpeak} disabled={!selectedText || isSpeakingPopup}>
+              {isSpeakingPopup ? 'Speaking...' : 'Speak'}
             </button>
           </div>
         </div>
       )}
 
       <div className="botFunction">
-        <span className="message-time">{formatTime(created_at)}</span>
         <ButtonSpeaker text={content} />
-        <ButtonTranslate text={content} />
+        <ButtonTranslate onClick={handleTranslateAllClick} />
       </div>
     </div>
   );

@@ -11,3 +11,6 @@ export const fetchUserByUsername = async (username: string) => {
 export const registerUser = async (user: any) => {
   await UserModel.createUser(user);
 }; 
+export const authenticateUser = async (username: string, password: string): Promise<any> => {
+  return await UserModel.getUserByUsernameAndPassword(username, password);
+};

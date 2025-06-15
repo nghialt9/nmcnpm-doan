@@ -1,57 +1,27 @@
-import React, { useState } from "react";
-import { SiGoogletranslate } from "react-icons/si";
-import { Button, Modal } from "react-bootstrap";
-import { translate } from "../../services/chat";
-import Spinner from "react-bootstrap/Spinner";
+import React from 'react';
+import { FaLanguage } from 'react-icons/fa';
+import './index.css'; // Chúng ta sẽ cần file CSS này
 
-const ButtonTranslate = ({ text }: any) => {
-  const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
+interface ButtonTranslateProps {
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+}
 
-  const handleClose = () => setShow(false);
-  const [translateText, setTranslateText] = useState<string>("");
-
-  const handleTranslate = async () => {
-    try {
-      setLoading(true);
-      const data = await translate(text);
-      if (data.success && data.translatedText) {
-        setShow(true);
-        setTranslateText(data.translatedText);
-      } else {
-        console.error("Translation failed:", data.error);
-      }
-    } catch (error) {
-      console.error("Error translate:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const ButtonTranslate: React.FC<ButtonTranslateProps> = ({ onClick, disabled }) => {
   return (
-    <>
-      <button className="translate" onClick={handleTranslate}>
-        {loading ? (
-          <Spinner size={"sm"} animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        ) : (
-          <SiGoogletranslate size={30} color={"midnightblue"} />
-        )}
+    <div>
+      <button
+        className="translate-btn"
+        onClick={onClick}
+        disabled={disabled}
+        title="Translate full message"
+        aria-label="Translate full message"
+      >
+        <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FaLanguage size={22} color="cadetblue" />
+        </div>
       </button>
-
-      <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Message</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>{translateText}</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
+    </div>
   );
 };
 

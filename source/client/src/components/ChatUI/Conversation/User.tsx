@@ -6,23 +6,8 @@ import { useAuth } from "../../../providers/AuthContext";
 import { IoPersonSharp } from "react-icons/io5";
 import { translate } from "../../../services/chat";
 
-interface UserConversationProps {
-  content: string;
-  created_at?: string;
-}
-
-const UserConversation: React.FC<UserConversationProps> = ({ content, created_at }) => {
+const UserConversation = ({ content }: any) => {
   const { state } = useAuth();
-  
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    });
-  };
 
   const handleMouseUp = async (event: React.MouseEvent<HTMLDivElement>) => {
     const selectedText = window.getSelection()?.toString().trim();
@@ -48,10 +33,7 @@ const UserConversation: React.FC<UserConversationProps> = ({ content, created_at
         <IoPersonSharp size={30} />
         {state.user?.username && <span className="user-label" style={{ marginLeft: '5px' }}>{state.user.username}</span>}
       </div>
-      <div className="message-container">
-        <p className="txt">{content}</p>
-        <span className="message-time">{formatTime(created_at)}</span>
-      </div>
+      <p className="txt">{content}</p>
     </div>
   );
 };

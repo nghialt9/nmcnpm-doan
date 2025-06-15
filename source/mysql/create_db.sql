@@ -28,6 +28,7 @@ CREATE TABLE  IF NOT EXISTS users (
   created_at timestamp NOT NULL,
   updated_at timestamp,
   deleted_at timestamp,
+   item_role char(36),
   PRIMARY KEY(uuid),
   CONSTRAINT fk_historys_logs_from_history FOREIGN KEY (history_uuid) REFERENCES historys(uuid)
   );

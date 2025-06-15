@@ -3,15 +3,18 @@ export interface User {
   username: string;
   password: string;
   created_at: Date;
-  updated_at?: Date;
-  deleted_at?: Date;
+  updated_at?: Date; 
+  deleted_at?: Date; 
 }
 
 export interface History {
   uuid: string;
   created_at: Date;
   user_uuid: string;
+  updated_at?: Date; 
+  deleted_at?: Date;
 }
+
 
 export interface ConversationLog {
   uuid: string;

@@ -19,7 +19,28 @@ export const saveconversation = async (prompt: string): Promise<ChatResponse> =>
     };
   }
 };
+export const textToSpeechFromServer = async (text: string): Promise<string | null> => {
+    try {
+        // <<< ĐIỀU CHỈNH Ở ĐÂY: THÊM BASE_URL VÀO ĐƯỜNG DẪN >>>
+        const response = await fetch(`${BASE_URL}/conversation/text-to-speech`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+        });
 
+        if (!response.ok) {
+            console.error(`Server TTS failed with status: ${response.status}`);
+            throw new Error(`Server TTS failed: ${response.statusText}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        return audioUrl;
+    } catch (error) {
+        console.error("Error fetching TTS from server:", error);
+        return null;
+    }
+};
 export const getHistories = async ({ uuid }: any): Promise<any> => {
   try {
     const response = await apiCaller(
@@ -81,8 +102,8 @@ export const getConversationByHistoryId = async (
         sender: item.sender,
         content: item.sentences,
         role: item.item_role,
-        created_at: item.created_at,
       }));
+
     return {
       success: true,
       conversations
@@ -170,7 +191,6 @@ export const translate = async (text: string): Promise<ChatResponse> => {
     };
   }
 };
-
 // Save one word for a user
 export const saveWordForUser = async (user_uuid: string, word: string, meaning: string) => {
   try {

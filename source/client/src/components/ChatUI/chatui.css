@@ -67,8 +67,12 @@
   align-items: center;
   gap: 10px;
   padding: 5px 10px;
-  background-color:#a8cff4;
+  background-color:#007bff;
   border-radius: 25px;
+}
+
+.newChat:hover {
+  background-color: #0056b3;
 }
 
 .newChat button {
@@ -151,13 +155,15 @@ list-group-item.active {
   font-size: 1.5rem;
 }
 
+/* *** SỬA LỖI: Loại bỏ min-height không chính xác và thêm overflow: hidden *** */
 .main {
-  min-height: calc(100vh - 14rem);
+  /* min-height: calc(100vh - 14rem); */ /* <--- Dòng này gây ra lỗi */
   display: flex;
   flex-direction: column;
   margin: 0;
   flex-grow: 1;
   padding: 20px;
+  overflow: hidden; /* Ngăn chặn các lỗi tràn layout con */
 }
 
 .chats {
@@ -184,10 +190,9 @@ list-group-item.active {
 .chat .txt {
   margin-left: 10px;
   margin-right: 10px;
-  margin-bottom: 0;
   color: #333;
   padding: 10px 15px;
-  border-radius: 15px 15px 15px 0;
+  border-radius: 15px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   background: white;
 }
@@ -207,9 +212,8 @@ div::-webkit-scrollbar {
 .user .txt {
     background: #a8cff4;
     margin-left: 0;
-    margin-right: 5px;
+    margin-right: 10px;
     border-radius: 15px 15px 0 15px;
-    margin-bottom: 0;
 }
 .bott {
   position: relative;
@@ -222,13 +226,14 @@ div::-webkit-scrollbar {
 
 .bott .botFunction {
   position: absolute;
-  bottom: -2.5rem;
-  left: 4rem;
+  bottom: -2rem;
+  left: 5rem;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 1rem;
 }
+
 
 .bott .botFunction button {
   width: 36px;
@@ -259,6 +264,8 @@ div::-webkit-scrollbar {
   height: 1.2em;
 }
 
+
+
 .chatFooter {
   margin-top: 10px;
   width: 100%;
@@ -266,7 +273,8 @@ div::-webkit-scrollbar {
   justify-content: center;   
   padding: 0;               
   background: transparent;  
-  box-shadow: none;     
+  box-shadow: none;   
+  flex-shrink: 0; /* Đảm bảo footer không bị co lại */
 }
 
 .inp {
@@ -617,6 +625,7 @@ div::-webkit-scrollbar {
   gap: 10px;
   justify-content: center;
   margin-top: 10px;
+  flex-shrink: 0; /* Đảm bảo không bị co lại */
 }
 
 .suggestion-button {
@@ -634,24 +643,92 @@ div::-webkit-scrollbar {
   background-color: #b2ebf2;
 }
 
-.message-container {
+.status-indicator {
+    padding: 10px;
+    text-align: center;
+    height: 40px; /* Cho nó một chiều cao cố định để không nhảy layout */
+    flex-shrink: 0;
+}
+
+.manual-btn, .voice-btn {
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+.manual-btn {
+  background: #007bff; /* Màu nền khác biệt */
+  color: white;
+}
+
+.manual-btn:hover {
+  background: #0056b3;
+}
+
+.voice-btn {
+  background: #007bff; /* Màu đỏ để nổi bật chế độ voice */
+  color: white;
+}
+
+.voice-btn:hover {
+  background: #0056b3;
+}
+
+/* --- Giao diện ConversationView Toàn màn hình --- */
+.conversation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(26, 42, 58, 0.95); /* Màu nền tối, hơi trong suốt */
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 2rem;
+
 }
 
-.message-time {
-  font-size: 0.7rem;
-  color: #666;
-  margin-top: 2px;
-  margin-right: 5px;
-  margin-bottom: 1rem;
+.exit-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
 }
 
-.bott .message-container {
-  align-items: flex-start;
+.exit-btn:hover {
+  opacity: 1;
 }
 
-.bott .message-time {
-  margin-left: 10px;
+.transcript-container {
+  flex-grow: 1;
+  width: 100%;
+  max-width: 800px;
+  overflow-y: auto;
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.status-footer {
+  height: 50px;
+  font-size: 1.2rem;
+  color: #a8cff4;
+  font-style: italic;
 }

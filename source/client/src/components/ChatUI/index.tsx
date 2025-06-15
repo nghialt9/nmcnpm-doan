@@ -1,71 +1,87 @@
-// File: client/src/components/ChatUI/index.tsx
 import React, { useState, useEffect, useRef, Fragment } from "react";
 import { IoSend } from "react-icons/io5";
 import { FaMicrophone } from "react-icons/fa6";
 import { IoMdAddCircle } from "react-icons/io";
 import { useAuth } from "../../providers/AuthContext";
-import { saveWordForUser, getSavedWordsForUser } from "../../services/chat";
 import {
+  saveWordForUser,
+  getSavedWordsForUser,
   saveHistories,
   getHistories,
   getConversationByHistoryId,
   sendConversation,
+  textToSpeechFromServer
 } from "../../services/chat";
+import { speechToText } from "../../services/openapi";
 import { ListGroup, ListGroupItem, Spinner } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
-import { speechToText } from "../../services/openapi";
 
 import UserConversation from "./Conversation/User";
 import BotConversation from "./Conversation/Bot";
-
+import ConversationView from "./Conversation/ConversationView";
 
 import "./chatui.css";
 import Header from "../Header";
-
-// Import Message type from shared types to match API
 import { Message as ChatMessage } from "../../types/Chat";
+import { FaCertificate } from "react-icons/fa";
 
 interface SavedWord {
   text: string;
   meaning: string;
 }
 
-// Declare mediaRecorder and audioChunks at module scope
-let mediaRecorder: MediaRecorder | null = null;
-let audioChunks: Blob[] = [];
+interface ChatHistory {
+  history_uuid: string;
+  createdAt: string;
+  title: string;
+}
+
+type UIMode = "DEFAULT" | "CONVERSATION_FULLSCREEN";
 
 const Chat: React.FC = () => {
-  /* ---------------------------- STATE DECLARATION --------------------------- */
   const { state } = useAuth();
-  const [histories, setHistories] = useState<any[]>([]);
+  const [histories, setHistories] = useState<ChatHistory[]>([]);
   const [conversation, setConversation] = useState<ChatMessage[]>([]);
-  const [activeHistory, setActiveHistory] = useState<any>({});
-  const [activeDate, setActiveDate] = useState<string>("");
+  const [activeHistory, setActiveHistory] = useState<Partial<ChatHistory>>({});
   const [savedWords, setSavedWords] = useState<SavedWord[]>([]);
-  const [selectedSavedWord, setSelectedSavedWord] = useState<SavedWord | null>(
-    null
-  );
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedSavedWord, setSelectedSavedWord] = useState<SavedWord | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  /* ----------------------------- REFS & EFFECTS ---------------------------- */
+  const [inputText, setInputText] = useState("");
+  const [mode, setMode] = useState<UIMode>("DEFAULT");
+  const [isManualRecording, setIsManualRecording] = useState(false);
+  const botAudioRef = useRef<HTMLAudioElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const activeHistoryUuidRef = useRef<string | null>(null);
+  const hideSavedWordDisplay = () => {
+    if (selectedSavedWord) {
+      setSelectedSavedWord(null);
+    }
+  };
+  const handleExitConversationView = () => {
+    setMode("DEFAULT");
+    // Ngay sau khi quay lại màn hình chính, ta tải lại cuộc hội thoại
+    if (activeHistory.history_uuid) {
+      _handleFetchConversation(activeHistory.history_uuid);
+    }
+  };
+  useEffect(() => {
+    activeHistoryUuidRef.current = activeHistory.history_uuid ?? null;
+  }, [activeHistory.history_uuid]);
 
   useEffect(() => {
-    _initMediaRecorder();
-    return () => {
-      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
-
-  useEffect(() => {
-    _handleFetchHistories({ uuid: state.user?.uuid });
+    if (state.user?.uuid) {
+      _handleFetchHistories({ uuid: state.user.uuid });
+      _handleFetchSavedWords(state.user.uuid);
+    }
   }, [state.user?.uuid]);
 
   useEffect(() => {
-    if (activeHistory.history_uuid) _handleFetchConversation(activeHistory.history_uuid);
+    if (activeHistory.history_uuid) {
+      _handleFetchConversation(activeHistory.history_uuid);
+    } else {
+      setConversation([]);
+    }
   }, [activeHistory.history_uuid]);
 
   useEffect(() => {
@@ -73,43 +89,175 @@ const Chat: React.FC = () => {
     if (el) el.scrollTop = el.scrollHeight;
   }, [conversation]);
 
-  /* ------------------------------ FUNCTIONS ------------------------------- */
-  const _initMediaRecorder = async () => {
+  const speakText = async (text: string) => {
+    if (botAudioRef.current && !botAudioRef.current.paused) {
+      botAudioRef.current.pause();
+    }
+    try {
+      const audioUrl = await textToSpeechFromServer(text);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        botAudioRef.current = audio;
+        await audio.play();
+        audio.onended = () => {
+          if (audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+          botAudioRef.current = null;
+        };
+      }
+    } catch (error) {
+      console.error("Lỗi Text-to-Speech:", error);
+      setChatError("Không thể phát âm thanh.");
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (botAudioRef.current) {
+        botAudioRef.current.pause();
+        if(botAudioRef.current.src.startsWith('blob:')) URL.revokeObjectURL(botAudioRef.current.src);
+      }
+    };
+  }, []);
+  
+  const handleManualRecord = async () => {
+    hideSavedWordDisplay();
+    if (isManualRecording) return;
+    setIsManualRecording(true);
+    setChatError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-      mediaRecorder = new MediaRecorder(stream);
-
-      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-        audioChunks = [];
-        try {
-          const txt = await speechToText(audioBlob);
-          if (txt && inputRef.current) inputRef.current.value = txt;
-        } catch (err) {
-          console.error("Transcribe error", err);
-        }
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = async () => {
+          stream.getTracks().forEach(track => track.stop());
+          if (chunks.length === 0) {
+              setChatError("Không ghi nhận được âm thanh.");
+              setIsManualRecording(false);
+              return;
+          }
+          const audioBlob = new Blob(chunks, { type: "audio/webm" });
+          const transcribedText = await speechToText(audioBlob);
+          setInputText(transcribedText ?? "");
+          setIsManualRecording(false);
       };
+      recorder.start();
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+            recorder.stop();
+        }
+      }, 5000);
     } catch (err) {
-      console.error("Mic init error", err);
-      alert("Could not access microphone. Check permission.");
+      console.error("Manual recording failed:", err);
+      setChatError("Không thể truy cập micro. Vui lòng cấp quyền.");
+      setIsManualRecording(false);
     }
   };
 
-  const startRecording = () => {
-    if (mediaRecorder?.state === "inactive") {
-      audioChunks = [];
-      mediaRecorder.start();
-      setIsRecording(true);
+  const _handleSendTextContent = async (text: string) => {
+    const userMsg: ChatMessage = { uuid: uuidv4(), sender: "user", content: text, role: "user" };
+    setConversation((prev) => [...prev, userMsg]);
+    setSuggestions([]);
+
+    let isNewChat = false;
+    let historyToUse = activeHistoryUuidRef.current;
+
+    try {
+      if (!historyToUse) {
+        isNewChat = true;
+        const res = await saveHistories({ user_uuid: state.user?.uuid });
+        if (res.success && res.data) {
+          const newHistory: ChatHistory = {
+            history_uuid: res.data.uuid,
+            createdAt: res.data.created_at,
+            title: "New Conversation..."
+          };
+          setHistories((prev) => [newHistory, ...prev]);
+          setActiveHistory(newHistory);
+          historyToUse = newHistory.history_uuid;
+        } else {
+          setChatError(res.error || "Không thể bắt đầu cuộc trò chuyện mới.");
+          setConversation(prev => prev.slice(0, prev.length - 1));
+          return;
+        }
+      }
+
+      const res = await sendConversation({ number_sentence: "1", sentences: text, history_uuid: historyToUse });
+
+      const botMsg: ChatMessage = {
+        uuid: uuidv4(),
+        sender: "system",
+        content: res.success ? (res.message ?? "No response message.") : "Sorry, I encountered an error.",
+        role: "system",
+      };
+      setConversation((prev) => [...prev, botMsg]);
+
+      if (isNewChat && historyToUse) {
+        const newTitle = text.length > 35 ? text.substring(0, 32) + '...' : text;
+        setHistories(prev => prev.map(h => 
+            h.history_uuid === historyToUse ? { ...h, title: newTitle } : h
+        ));
+        setActiveHistory(prev => ({ ...prev, title: newTitle }));
+      }
+
+      if (res.success && botMsg.content) {
+        await speakText(botMsg.content);
+      }
+      if (res.success) setSuggestions(res.suggestions || []);
+
+    } catch (err) {
+      console.error("Error sending conversation:", err);
+      setChatError("Lỗi kết nối, không thể gửi tin nhắn.");
+      setConversation(prev => prev.slice(0, prev.length - 1));
+    }
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => { setInputText(e.target.value); };
+  const handleVoiceModeClick = () => { hideSavedWordDisplay(); if (!activeHistory.history_uuid) { setChatError("Vui lòng bắt đầu một cuộc hội thoại mới trước."); return; } setMode("CONVERSATION_FULLSCREEN"); };
+  const _handleSendFromInput = async () => { hideSavedWordDisplay(); if (!inputText.trim()) return; const textToSend = inputText; setInputText(""); await _handleSendTextContent(textToSend); };
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); _handleSendFromInput(); } };
+  
+  const handleCreateNewChatClick = () => {
+    setActiveHistory({});
+    setConversation([]);
+    setInputText("");
+    setSuggestions([]);
+    setSelectedSavedWord(null);
+    setChatError(null);
+  };
+
+  const _handleFetchSavedWords = async (user_uuid: string) => {
+    try {
+      const res = await getSavedWordsForUser(user_uuid);
+      if (res.success && res.data) {
+        setSavedWords(
+          res.data.map((item: any) => ({ text: item.word, meaning: item.meaning }))
+        );
+      }
+    } catch (error) {
+      console.error("Failed to fetch saved words:", error);
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder?.state === "recording") {
-      mediaRecorder.stop();
-      setIsRecording(false);
+  const handleSaveWord = async (word: string, meaning: string) => {
+    if (!state.user?.uuid) return;
+    const res = await saveWordForUser(state.user.uuid, word, meaning);
+    if (res.success && res.data) {
+      setSavedWords((prev) => [
+        { text: res.data.word, meaning: res.data.meaning },
+        ...prev,
+      ]);
+    } else {
+      console.error("Could not save word:", res.error);
+      setChatError(res.error || "Could not save the word.");
+    }
+  };
+
+  const handleSavedWordClick = (word: SavedWord) => {
+    if (selectedSavedWord && selectedSavedWord.text === word.text) {
+      setSelectedSavedWord(null);
+    } else {
+      setSelectedSavedWord(word);
     }
   };
 
@@ -118,18 +266,27 @@ const Chat: React.FC = () => {
     try {
       const res = await getHistories({ uuid });
       if (res.success && res.data?.length) {
-        setHistories(res.data);
-        const first = res.data[0];
-        setActiveHistory(first);
-        setActiveDate(first.createdAt);
+        const normalized: ChatHistory[] = res.data.map((h: any) => ({
+          history_uuid: h.uuid,
+          createdAt: h.createdAt ?? h.created_at,
+          title: h.title || `Chat from ${new Date(h.createdAt ?? h.created_at).toLocaleDateString()}`,
+        }));
+
+        setHistories(normalized);
+
+        const currentActive = activeHistory.history_uuid 
+            ? normalized.find(h => h.history_uuid === activeHistory.history_uuid)
+            : normalized[0];
+
+        setActiveHistory(currentActive || {});
+
       } else {
         setHistories([]);
         setActiveHistory({});
-        setActiveDate("");
         setConversation([]);
       }
     } catch (err) {
-      console.error("FetchHistories", err);
+      console.error("FetchHistories error:", err);
     }
   };
 
@@ -141,146 +298,58 @@ const Chat: React.FC = () => {
           uuid: c.uuid || uuidv4(),
           sender: c.sender,
           content: c.content,
-          role: c.role || "",
-          created_at: c.created_at
+          role: c.role || (c.sender === "user" ? "user" : "system"),
         }));
         setConversation(convs);
+      } else {
+        setConversation([]);
       }
     } catch (err) {
-      console.error("FetchConversation", err);
+      console.error("FetchConversation error:", err);
+      setConversation([]);
     }
   };
 
-      const _handleSendText = async (e: React.FormEvent) => {
-      e.preventDefault();
-      const text = inputRef.current?.value.trim() || "";
-      if (!text) return;
-      if (inputRef.current) inputRef.current.value = "";
-      await _handleSendTextContent(text);
-    };
-
-      const _handleSendTextContent = async (text: string) => {
-      if (!text.trim()) return;
-      if (!activeHistory.history_uuid) {
-        setChatError("Hãy tạo hoặc chọn History trước!");
-        return;
-      }
-      setChatError(null);
-
-      const userMsg: ChatMessage = {
-        uuid: uuidv4(),
-        sender: "user",
-        content: text,
-        role: "user",
-        created_at: new Date().toISOString()
-      };
-      setConversation((prev) => [...prev, userMsg]);
-
-      try {
-        setIsLoading(true);
-        const res = await sendConversation({
-          number_sentence: "1",
-          sentences: text,
-          history_uuid: activeHistory.history_uuid,
-        });
-
-        if (res.success && res.message) {
-          const botMsg: ChatMessage = {
-            uuid: uuidv4(),
-            sender: "system",
-            content: res.message,
-            role: "system",
-            created_at: new Date().toISOString()
-          };
-          setConversation((prev) => [...prev, botMsg]);
-          setSuggestions(res.suggestions || []);
-        }
-      } catch (err) {
-        console.error("sendText", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-  useEffect(() => {
-    if (state.user?.uuid) {
-      getSavedWordsForUser(state.user.uuid).then(res => {
-        if (res.success && Array.isArray(res.data)) {
-          setSavedWords(res.data.map((row: any) => ({
-            text: row.word,
-            meaning: row.meaning
-          })));
-        }
-      });
-    }
-  }, [state.user?.uuid]);
-
-  const handleSaveWord = async (word: string, meaning: string) => {
-  if (!state.user?.uuid) return;
-  const res = await saveWordForUser(state.user.uuid, word, meaning);
-  if (res.success && res.data) {
-    // prepend to the UI list
-    setSavedWords(prev => [{ text: res.data.word, meaning: res.data.meaning }, ...prev]);
-  } else {
-    console.error("Could not save word:", res.error);
+  if (mode === "CONVERSATION_FULLSCREEN") {
+    return (
+      <ConversationView activeHistory={activeHistory} onExit={handleExitConversationView} />
+    );
   }
-};
 
-
-  /* ------------------------------- RENDER --------------------------------- */
   return (
     <>
       <Header />
       <div className="App">
-        {/* --------------------------- SIDEBAR --------------------------- */}
         <div className="sidebar">
-          {/* Histories */}
-          <div className="titleSideBar">
-            <h1>History</h1>
-          </div>
-          <div className="histories-section">
-            <div className="newChat">
+          <div className="top">
+            <div className="newChat" onClick={handleCreateNewChatClick}>
               <IoMdAddCircle size={30} color="white" />
-              <button
-                onClick={async () => {
-                  if (state.user?.uuid) {
-                    const res = await saveHistories({ user_uuid: state.user.uuid });
-                    if (res.success) _handleFetchHistories({ uuid: state.user.uuid });
-                  }
-                }}
-                disabled={histories.some((h) => h.createdAt === activeDate)}
-              >
-                Today
-              </button>
+              <button>New Chat</button>
             </div>
+            <div className="titleSideBar"><h1>History</h1></div>
             <ListGroup className="list historyList">
               {histories.map((h) => (
                 <ListGroupItem
-                  key={h.uuid}
-                  active={h.createdAt === activeDate}
-                  onClick={() => {
-                    setActiveHistory(h);
-                    setActiveDate(h.createdAt);
-                  }}
+                  key={h.history_uuid}
+                  active={h.history_uuid === activeHistory.history_uuid}
+                  onClick={() => setActiveHistory(h)}
                   className="detailList"
                 >
-                  {h.createdAt}
+                  {h.title}
                 </ListGroupItem>
               ))}
             </ListGroup>
           </div>
-
-          {/* Saved Words */}
           <div className="savedwords-section">
             <div className="titleSideBar" style={{ marginTop: 20 }}>
               <h1>Saved Words</h1>
             </div>
             <ListGroup className="list savedWordsList">
-              {savedWords.map((w) => (
+              {savedWords.map((w, index) => (
                 <ListGroupItem
-                  key={w.text}
+                  key={`${w.text}-${index}`}
                   active={selectedSavedWord?.text === w.text}
-                  onClick={() => setSelectedSavedWord(w)}
+                  onClick={() => handleSavedWordClick(w)}
                   className="detailList"
                 >
                   {w.text}
@@ -289,87 +358,54 @@ const Chat: React.FC = () => {
             </ListGroup>
           </div>
         </div>
-
-        {/* --------------------------- MAIN PANEL --------------------------- */}
         <div className="chatting">
-          <div className="titleMain">
-            <h1>Chatting</h1>
-          </div>
-
-          {/* --- Phần hiển thị từ vựng được tách biệt --- */}
+          <div className="titleMain"><h1>Chatting</h1></div>
           {selectedSavedWord && (
             <div className="saved-word-display">
               <h3>{selectedSavedWord.text}</h3>
               <p>{selectedSavedWord.meaning}</p>
             </div>
           )}
-
           <div className="main">
             <div className="chats">
               {conversation.map((msg) => (
                 <Fragment key={msg.uuid}>
                   {msg.role === "user" ? (
-                    <UserConversation content={msg.content} created_at={msg.created_at} />
+                    <UserConversation content={msg.content} />
                   ) : (
-                    <BotConversation content={msg.content} created_at={msg.created_at} onSaveWord={handleSaveWord} />
+                    <BotConversation content={msg.content} onSaveWord={handleSaveWord} />
                   )}
                 </Fragment>
               ))}
             </div>
-              {suggestions.length > 0 && (
+            {chatError && <p className="error-message">{chatError}</p>}
+            {suggestions.length > 0 && (
               <div className="suggestions">
                 {suggestions.map((s, idx) => (
-                  <button
-                    key={idx}
-                    className="suggestion-button"
-                    onClick={() => {
-                    if (inputRef.current) inputRef.current.value = s;
-                    _handleSendTextContent(s);
-                  }}
-                  >
+                  <button key={idx} className="suggestion-button" onClick={() => _handleSendTextContent(s)}>
                     {s}
                   </button>
                 ))}
               </div>
             )}
-
             <div className="chatFooter">
               <div className="inp">
-                <input
-                  type="text"
-                  ref={inputRef}
-                  placeholder="Ask me anything...."
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      _handleSendText(e);
-                    }
-                  }}
-                />
-                <button
-                  style={{ width: "auto" }}
-                  className={`micro ${isRecording ? 'recording' : ''}`}
-                  onClick={isRecording ? stopRecording : startRecording}
-                >
-                  {isRecording ? (
-                    <FaMicrophone size={30} color="blue" />
-                  ) : (
-                    <FaMicrophone size={30} color="white" />
-                  )}
-                </button>
-                <button className="send" onClick={_handleSendText}>
-                  {isLoading ? (
-                    <Spinner animation="border" variant="light" size="sm" />
-                  ) : (
-                    <IoSend size={30} color="white" />
-                  )}
-                </button>
+                <input type="text" ref={inputRef} value={inputText} onChange={handleInputChange} placeholder="Gõ tin nhắn hoặc dùng các nút chức năng..." onKeyDown={handleKeyDown} onFocus={hideSavedWordDisplay} />
+                {inputText ? (
+                  <button className="send" onClick={_handleSendFromInput} title="Send Message"><IoSend size={30} color="white" /></button>
+                ) : (
+                  <>
+                    <button className="manual-btn" onClick={handleManualRecord} disabled={isManualRecording} title="Manual Mode">
+                      {isManualRecording ? <Spinner animation="border" size="sm" /> : <FaMicrophone  size={30} color="#white" />}
+                    </button>
+                    <button className="voice-btn" onClick={handleVoiceModeClick} title="Conversation Mode">
+                      <FaCertificate size={30} color="white" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-
           </div>
-
-          {chatError && <div className="chat-error-message">{chatError}</div>}
         </div>
       </div>
     </>
