@@ -1,26 +1,65 @@
-MEMBER
+# SpeakSphere - Ứng dụng luyện tiếng Anh với AI
 
-1. Lâm Trọng Nghia
-2. Huỳnh Minh Trí
-3. Quốc
-4. Hiếu
+## Thành viên nhóm
+1. Lâm Trọng Nghĩa
+2. Nguyễn Tuấn Anh
+3. Trương Ngọc Tin
+4. Trần Thanh Tùng
 
-Web for user learn English by text conventions with AI
+---
 
-1. Folder Documnet
-2. Source web reactjs USE OPENAI API
+## Giới thiệu
+SpeakSphere là ứng dụng web giúp người dùng luyện tập tiếng Anh thông qua hội thoại với AI. Ứng dụng sử dụng ReactJS cho frontend, NodeJS cho backend và OpenAI API để xử lý ngôn ngữ tự nhiên.
 
-HƯỚNG DẪN CÀI ĐẶT
+---
 
-1.  YÊU CẦU HỆ THỐNG:
-    CÁCH 1: CÀI ĐẶT DOCKER
-    CÁCH 2: CÀI ĐẶT NODEJS, MYSQLSERVER.
-2.  HƯỚNG DẪN CHẠY
-    1.  CÁCH 1:
-        1. MỞ POWERSHELL CHẠY COMMAND: DOCKER COMPOSE UP -D
-        2. Truy cập đường dẫn đến web application bằng trình duyệt chạy ở đường dẫn "localhost:3000"
-    1.  CÁCH 2:
-        1. START SERVER Database : MYSQL.
-        2. START SERVER App : bằng cách mở commandline theo đường dẫn "doan/server": "npm run start".
-        3. START SERVER Web Application : bằng cách mở commandline theo đường dẫn "doan/client" với command "npm run start".
-        4. Truy cập đường dẫn đến web application bằng trình duyệt chạy ở đường dẫn "localhost:3000"
+## Cấu trúc thư mục
+- `documents/`: Tài liệu hướng dẫn, tài liệu tham khảo.
+- `client/`: Mã nguồn frontend (ReactJS).
+- `server/`: Mã nguồn backend (NodeJS, Express).
+- `mysql/`: Cấu hình và script khởi tạo cơ sở dữ liệu MySQL.
+
+---
+
+## Yêu cầu hệ thống
+Bạn có thể chạy ứng dụng bằng Docker hoặc cài đặt thủ công:
+
+### Cách 1: Sử dụng Docker (Khuyến nghị)
+- Cài đặt [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+### Cách 2: Cài đặt thủ công
+- NodeJS >= 18.x
+- MySQL Server >= 8.x
+
+---
+
+## Hướng dẫn cài đặt & chạy ứng dụng
+
+### Cách 1: Chạy bằng Docker
+1. Mở PowerShell hoặc Terminal tại thư mục `source`
+2. Chạy lệnh:
+    ```
+    docker compose up -d
+    ```
+3. Truy cập ứng dụng tại [http://localhost:3000](http://localhost:3000)
+
+### Cách 2: Chạy thủ công
+1. Khởi động MySQL Server và import database từ `mysql/create_db.sql`
+2. Cài đặt backend:
+    ```
+    cd server
+    npm install
+    npm run start
+    ```
+3. Cài đặt frontend:
+    ```
+    cd client
+    npm install
+    npm run start
+    ```
+4. Truy cập ứng dụng tại [http://localhost:3000](http://localhost:3000)
+
+---
+
+## Liên hệ & đóng góp
+Mọi ý kiến đóng góp hoặc báo lỗi xin gửi về nhóm
