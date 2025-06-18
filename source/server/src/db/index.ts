@@ -2,20 +2,20 @@ import { Pool } from 'pg';
 import { config } from 'dotenv';
 config();
 
-export const connection = new Pool({
-  host: process.env.PG_HOST || process.env.DB_HOST,
-  user: process.env.PG_USER || process.env.DB_USER,
-  password: process.env.PG_PASSWORD || process.env.DB_PASSWORD,
-  port: Number(process.env.PG_PORT || process.env.DB_PORT),
-  database: process.env.PG_DATABASE || process.env.DB_DATABASE,
-});
-
 // export const connection = new Pool({
-//   connectionString: 'postgresql://nmcnpm_19lf_user:Lq4yCCW4Zby5ct96VC3Mcvd4ugzMwz91@dpg-d135o8emcj7s7380be5g-a.oregon-postgres.render.com/nmcnpm_19lf',
-//   ssl: {
-//     rejectUnauthorized: false,
-//   },
+//   host: process.env.PG_HOST || process.env.DB_HOST,
+//   user: process.env.PG_USER || process.env.DB_USER,
+//   password: process.env.PG_PASSWORD || process.env.DB_PASSWORD,
+//   port: Number(process.env.PG_PORT || process.env.DB_PORT),
+//   database: process.env.PG_DATABASE || process.env.DB_DATABASE,
 // });
+
+export const connection = new Pool({
+  connectionString: 'postgresql://nmcnpm_19lf_user:Lq4yCCW4Zby5ct96VC3Mcvd4ugzMwz91@dpg-d135o8emcj7s7380be5g-a.oregon-postgres.render.com/nmcnpm_19lf',
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 // Auto create tables if not exist
 export const initTables = async () => {
