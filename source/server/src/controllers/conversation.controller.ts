@@ -85,3 +85,29 @@ export const translate = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }; 
+
+export const textToSpeech = async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ success: false, error: 'Text content is required for TTS.' });
+    }
+
+    const speechFile = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: "alloy",
+      input: text,
+      response_format: "mp3",
+    });
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', 'attachment; filename="speech.mp3"');
+
+    const buffer = Buffer.from(await speechFile.arrayBuffer());
+    res.send(buffer);
+
+  } catch (error) {
+    console.error("Error in /api/conversation/text-to-speech:", error);
+    res.status(500).json({ success: false, error: 'Failed to generate speech from text.' });
+  }
+};

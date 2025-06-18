@@ -1,69 +1,78 @@
-import { useState, useEffect } from "react";
-import { FaVolumeUp } from "react-icons/fa";
+import React, { useState, useRef, useEffect } from "react";
+import { FaVolumeUp, FaSpinner } from "react-icons/fa";
+import { textToSpeechFromServer } from "../../services/chat"; 
 import "./index.css";
-import React from "react";
 
 const ButtonSpeaker = ({ text }: { text: string }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    const synth = window.speechSynthesis;
+  const cleanupAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
 
-    return () => {
-      synth.cancel();
-    };
-  }, [text]);
+      if (audioRef.current.src.startsWith('blob:')) {
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+  };
 
-  const _handlePlay = () => {
+  const _handlePlay = async () => {
+    // Nếu đang phát, hãy dừng lại
+    if (isPlaying && audioRef.current) {
+      cleanupAudio();
+      return;
+    }
+
+    // Dọn dẹp audio cũ trước khi tạo mới
+    cleanupAudio();
     setIsPlaying(true);
-    let synth = window.speechSynthesis;
 
-    if ("speechSynthesis" in window) {
-      // Cancel any ongoing speech synthesis
-      synth.cancel();
+    try {
+      const audioUrl = await textToSpeechFromServer(text);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
 
-      // Function to split the text into smaller chunks
-      const splitText = (text: any, chunkSize = 100) => {
-        // const regex = new RegExp(`.{1,${chunkSize}}(\\s|$)`, "g");
-        // return text.match(regex) || [];
-        return text.split(".");
-      };
-
-      // Split the message into smaller chunks
-      const chunks = splitText(text);
-
-      // Create and speak each chunk sequentially
-      chunks.forEach((chunk: any, index: any) => {
-        const utterance = new SpeechSynthesisUtterance(chunk);
-
-        if (index === chunks.length - 1) {
-          utterance.onend = () => {
-            console.log("Finished speaking all chunks");
-            setIsPlaying(false);
-          };
-        }
-
-        utterance.onerror = (event) => {
-          console.error("SpeechSynthesisUtterance.onerror", event);
+        audio.onended = () => {
+          cleanupAudio();
+        };
+        audio.onerror = (e) => {
+          console.error("Audio playback error:", e);
+          cleanupAudio();
         };
 
-        synth.speak(utterance);
-      });
-    } else {
-      alert("Sorry, your browser doesn't support text to speech.");
+        await audio.play();
+      } else {
+        console.error("Failed to get audio from server.");
+        setIsPlaying(false);
+      }
+    } catch (error) {
+      console.error("Error playing text to speech:", error);
+      setIsPlaying(false);
     }
   };
+
+  // Cleanup effect khi component bị unmount
+  useEffect(() => {
+    return () => {
+      cleanupAudio();
+    };
+  }, []);
 
   return (
     <div>
       <button
-        className={`speaker ${!isPlaying ? "" : "pointer"}`}
+        className={`speaker ${isPlaying ? "playing" : ""}`}
         onClick={_handlePlay}
-        title="Play text to speech"
-        aria-label="Play text to speech"
+        title={isPlaying ? "Stop" : "Play text to speech"}
+        aria-label={isPlaying ? "Stop" : "Play text to speech"}
+        disabled={!text}
       >
         <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <FaVolumeUp color="cadetblue" />
+          {isPlaying ? <FaSpinner className="spin-animation" color="cadetblue" /> : <FaVolumeUp color="cadetblue" />}
         </div>
       </button>
     </div>

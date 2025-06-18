@@ -1,0 +1,40 @@
+
+.app-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  padding: 0.5rem 0;
+}
+
+.app-logo {
+  font-size: 1.75rem !important; /* Quan trọng để ghi đè bootstrap */
+  font-weight: bold !important;
+  color: var(--accent-primary) !important;
+}
+
+.user-info, .logout-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.user-info {
+  margin-right: 1.5rem;
+}
+
+.logout-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.logout-button:hover {
+  color: var(--accent-hover);
+}
